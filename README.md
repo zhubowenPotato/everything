@@ -24,6 +24,10 @@ npm install
 npm run dev
 ```
 
+### 中文界面
+
+本地启动器和全部子应用默认启用中文界面。首次打开子应用时，如右下角显示“点击汉化”，点击一次即可下载 Chrome / Edge 的本地中文语言包；之后可随时通过右下角按钮切换中英文。使用说明见 [launchers/README.md](launchers/README.md)。
+
 <br>
 
 ## Office

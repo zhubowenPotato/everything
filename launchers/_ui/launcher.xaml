@@ -1,7 +1,7 @@
 ﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Name="LauncherWindow"
-        Title="Everything Launcher"
+        Title="Everything 应用中心"
         Width="1120" Height="740"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen"
@@ -138,7 +138,7 @@
           <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
             <Image x:Name="BrandLogo" Height="34" Width="102" Stretch="Uniform" HorizontalAlignment="Left"/>
             <Border Background="#EAF3EC" CornerRadius="7" Padding="9,4" Margin="14,0,0,0" VerticalAlignment="Center">
-              <TextBlock Text="LOCAL LAUNCHER" FontSize="9" FontWeight="SemiBold" Foreground="#356D49"/>
+              <TextBlock Text="本地应用中心" FontSize="9" FontWeight="SemiBold" Foreground="#356D49"/>
             </Border>
           </StackPanel>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">

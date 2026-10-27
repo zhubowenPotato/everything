@@ -40,11 +40,11 @@ echo Folder: %TARGET%
 echo The browser will open automatically. Press Ctrl+C in this window to stop.
 echo.
 set "OPEN_OPTION="
-if not defined EVERYTHING_LAUNCH_NO_BROWSER set "OPEN_OPTION=-- --open"
+if not defined EVERYTHING_LAUNCH_NO_BROWSER set "OPEN_OPTION=--open"
 set "PORT_OPTION="
 if defined EVERYTHING_LAUNCH_PORT set "PORT_OPTION=--port %EVERYTHING_LAUNCH_PORT%"
 if defined EVERYTHING_LAUNCH_PORT echo Port: %EVERYTHING_LAUNCH_PORT%
-call npm run dev %OPEN_OPTION% %PORT_OPTION%
+call npm run dev -- %OPEN_OPTION% %PORT_OPTION%
 set "EXITCODE=%ERRORLEVEL%"
 echo.
 if not "%EXITCODE%"=="0" (

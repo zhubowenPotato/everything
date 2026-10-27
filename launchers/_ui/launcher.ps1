@@ -43,57 +43,57 @@ $script:BrushDotError = New-Brush '#C85B5B'
 $script:BrushWhite = New-Brush '#FFFFFF'
 
 $script:Apps = @(
-  [pscustomobject]@{ Name='Spreadsheet'; Dir='spreadsheet'; Category='office'; Desc='公式、图表、透视表与 AI 表格' },
-  [pscustomobject]@{ Name='Documents'; Dir='documents'; Category='office'; Desc='DOCX 文档编辑、评论与修订' },
-  [pscustomobject]@{ Name='Presentation'; Dir='presentation'; Category='office'; Desc='PPTX 演示、动画与演讲者视图' },
-  [pscustomobject]@{ Name='Whiteboard'; Dir='whiteboard'; Category='office'; Desc='无限白板、便签与实时协作' },
-  [pscustomobject]@{ Name='PDF'; Dir='pdf'; Category='office'; Desc='PDF 编辑、批注、OCR 与签名' },
-  [pscustomobject]@{ Name='Notes'; Dir='notes'; Category='office'; Desc='自由笔记、手写、标签与搜索' },
-  [pscustomobject]@{ Name='Records'; Dir='records'; Category='office'; Desc='Airtable 式数据表、视图与表单' },
-  [pscustomobject]@{ Name='Meetings'; Dir='meetings'; Category='collab'; Desc='视频会议、屏幕共享与聊天' },
-  [pscustomobject]@{ Name='Teamchat'; Dir='teamchat'; Category='collab'; Desc='团队频道、线程、私信与附件' },
-  [pscustomobject]@{ Name='Email'; Dir='email'; Category='collab'; Desc='Puter 邮箱收发、附件与搜索' },
-  [pscustomobject]@{ Name='Contacts'; Dir='contacts'; Category='collab'; Desc='轻量联系人管理与云端存储' },
-  [pscustomobject]@{ Name='Calendar'; Dir='calendar'; Category='collab'; Desc='日历、重复事件、提醒与 ICS' },
-  [pscustomobject]@{ Name='Signatures'; Dir='signatures'; Category='collab'; Desc='电子签名、签署流程与审计' },
-  [pscustomobject]@{ Name='Photo Studio'; Dir='photo-studio'; Category='creative'; Desc='图层、蒙版、修图与 PSD' },
-  [pscustomobject]@{ Name='Video Studio'; Dir='video-studio'; Category='creative'; Desc='多轨剪辑、特效、字幕与导出' },
-  [pscustomobject]@{ Name='Vector Studio'; Dir='vector-studio'; Category='creative'; Desc='矢量插画、钢笔与 SVG/PDF' },
-  [pscustomobject]@{ Name='Audio Studio'; Dir='audio-studio'; Category='creative'; Desc='录音、波形编辑、多轨混音' },
-  [pscustomobject]@{ Name='Music Studio'; Dir='music-studio'; Category='creative'; Desc='Pattern、钢琴卷帘与音乐制作' },
-  [pscustomobject]@{ Name='3D Studio'; Dir='3d'; Category='creative'; Desc='3D 建模、雕刻、动画与渲染' },
-  [pscustomobject]@{ Name='CAD'; Dir='cad'; Category='engineering'; Desc='2D 制图、图层、标注与 DXF' },
-  [pscustomobject]@{ Name='Parametric'; Dir='parametric'; Category='engineering'; Desc='参数化建模、B-Rep 与 STEP/STL' },
-  [pscustomobject]@{ Name='Circuits'; Dir='circuits'; Category='engineering'; Desc='原理图、PCB 布局与 Gerber' },
-  [pscustomobject]@{ Name='Building Design'; Dir='building-design'; Category='engineering'; Desc='BIM、平面/立面/剖面与图纸' },
-  [pscustomobject]@{ Name='Tasks'; Dir='tasks'; Category='productivity'; Desc='个人与共享待办清单' },
-  [pscustomobject]@{ Name='Projects'; Dir='projects'; Category='productivity'; Desc='看板、时间线与项目协作' },
-  [pscustomobject]@{ Name='Wiki'; Dir='wiki'; Category='productivity'; Desc='团队页面、文档与数据库' },
-  [pscustomobject]@{ Name='Time Tracking'; Dir='time-tracking'; Category='productivity'; Desc='按客户/项目记录可计费工时' },
-  [pscustomobject]@{ Name='Surveys'; Dir='survey'; Category='productivity'; Desc='问卷搭建、分享与结果分析' },
-  [pscustomobject]@{ Name='Accounting'; Dir='accounting'; Category='finance'; Desc='复式记账、对账与财务报表' },
-  [pscustomobject]@{ Name='Invoicing'; Dir='invoicing'; Category='finance'; Desc='报价、发票、周期计费与支付链接' },
-  [pscustomobject]@{ Name='Expenses'; Dir='expense'; Category='finance'; Desc='AI OCR 票据、报销与对账' },
-  [pscustomobject]@{ Name='Cap Table'; Dir='cap-table'; Category='finance'; Desc='股权、期权与融资管理' },
-  [pscustomobject]@{ Name='CRM'; Dir='crm'; Category='business'; Desc='线索、商机、跟进与销售预测' },
-  [pscustomobject]@{ Name='Help Desk'; Dir='help-desk'; Category='business'; Desc='共享收件箱、工单与帮助中心' },
-  [pscustomobject]@{ Name='Contracts'; Dir='contracts'; Category='business'; Desc='合同、续约提醒与义务跟踪' },
-  [pscustomobject]@{ Name='Point of Sale'; Dir='pos'; Category='business'; Desc='商品、结账、折扣与销售报表' },
-  [pscustomobject]@{ Name='Inventory'; Dir='inventory'; Category='business'; Desc='库存、库位、低库存与供应商' },
-  [pscustomobject]@{ Name='Assets'; Dir='assets'; Category='business'; Desc='设备台账、领用、维护与归还' },
-  [pscustomobject]@{ Name='Hiring'; Dir='hiring'; Category='business'; Desc='招聘页面、候选人流程与 Offer' },
-  [pscustomobject]@{ Name='Shifts'; Dir='shifts'; Category='business'; Desc='可用时间、排班、换班与考勤' },
-  [pscustomobject]@{ Name='Childcare'; Dir='childcare'; Category='business'; Desc='签到、日报、家长沟通与学费' },
-  [pscustomobject]@{ Name='Field Service'; Dir='field-service'; Category='business'; Desc='客户、工单、排程与收款' },
-  [pscustomobject]@{ Name='Legal'; Dir='legal'; Category='business'; Desc='案件、工时、账单与信托账户' },
-  [pscustomobject]@{ Name='Fleet'; Dir='fleet'; Category='business'; Desc='车辆、检查、维修与成本管理' },
-  [pscustomobject]@{ Name='Property Management'; Dir='property-management'; Category='business'; Desc='房产、租约、收租与维修' },
-  [pscustomobject]@{ Name='API Client'; Dir='api-client'; Category='developer'; Desc='HTTP 请求构建、测试与同步' },
-  [pscustomobject]@{ Name='Chess'; Dir='chess'; Category='games'; Desc='国际象棋，本地/在线与 AI 对战' },
-  [pscustomobject]@{ Name='Backgammon'; Dir='backgammon'; Category='games'; Desc='西洋双陆棋，本地/在线对战' },
-  [pscustomobject]@{ Name='Checkers'; Dir='checkers'; Category='games'; Desc='跳棋，本地/在线与 AI 对战' },
-  [pscustomobject]@{ Name='Solitaire'; Dir='solitaire'; Category='games'; Desc='Klondike 与 Spider 纸牌' },
-  [pscustomobject]@{ Name='Sudoku'; Dir='sudoku'; Category='games'; Desc='数独、每日题、铅笔标记与提示' }
+  [pscustomobject]@{ Name='Spreadsheet'; ZhName='电子表格'; Dir='spreadsheet'; Category='office'; Desc='公式、图表、透视表与 AI 表格' },
+  [pscustomobject]@{ Name='Documents'; ZhName='文档'; Dir='documents'; Category='office'; Desc='DOCX 文档编辑、评论与修订' },
+  [pscustomobject]@{ Name='Presentation'; ZhName='演示文稿'; Dir='presentation'; Category='office'; Desc='PPTX 演示、动画与演讲者视图' },
+  [pscustomobject]@{ Name='Whiteboard'; ZhName='白板'; Dir='whiteboard'; Category='office'; Desc='无限白板、便签与实时协作' },
+  [pscustomobject]@{ Name='PDF'; ZhName='PDF 工具'; Dir='pdf'; Category='office'; Desc='PDF 编辑、批注、OCR 与签名' },
+  [pscustomobject]@{ Name='Notes'; ZhName='笔记'; Dir='notes'; Category='office'; Desc='自由笔记、手写、标签与搜索' },
+  [pscustomobject]@{ Name='Records'; ZhName='数据表'; Dir='records'; Category='office'; Desc='Airtable 式数据表、视图与表单' },
+  [pscustomobject]@{ Name='Meetings'; ZhName='视频会议'; Dir='meetings'; Category='collab'; Desc='视频会议、屏幕共享与聊天' },
+  [pscustomobject]@{ Name='Teamchat'; ZhName='团队聊天'; Dir='teamchat'; Category='collab'; Desc='团队频道、线程、私信与附件' },
+  [pscustomobject]@{ Name='Email'; ZhName='邮件'; Dir='email'; Category='collab'; Desc='Puter 邮箱收发、附件与搜索' },
+  [pscustomobject]@{ Name='Contacts'; ZhName='联系人'; Dir='contacts'; Category='collab'; Desc='轻量联系人管理与云端存储' },
+  [pscustomobject]@{ Name='Calendar'; ZhName='日历'; Dir='calendar'; Category='collab'; Desc='日历、重复事件、提醒与 ICS' },
+  [pscustomobject]@{ Name='Signatures'; ZhName='电子签名'; Dir='signatures'; Category='collab'; Desc='电子签名、签署流程与审计' },
+  [pscustomobject]@{ Name='Photo Studio'; ZhName='图片工作室'; Dir='photo-studio'; Category='creative'; Desc='图层、蒙版、修图与 PSD' },
+  [pscustomobject]@{ Name='Video Studio'; ZhName='视频工作室'; Dir='video-studio'; Category='creative'; Desc='多轨剪辑、特效、字幕与导出' },
+  [pscustomobject]@{ Name='Vector Studio'; ZhName='矢量工作室'; Dir='vector-studio'; Category='creative'; Desc='矢量插画、钢笔与 SVG/PDF' },
+  [pscustomobject]@{ Name='Audio Studio'; ZhName='音频工作室'; Dir='audio-studio'; Category='creative'; Desc='录音、波形编辑、多轨混音' },
+  [pscustomobject]@{ Name='Music Studio'; ZhName='音乐工作室'; Dir='music-studio'; Category='creative'; Desc='Pattern、钢琴卷帘与音乐制作' },
+  [pscustomobject]@{ Name='3D Studio'; ZhName='3D 工作室'; Dir='3d'; Category='creative'; Desc='3D 建模、雕刻、动画与渲染' },
+  [pscustomobject]@{ Name='CAD'; ZhName='CAD 制图'; Dir='cad'; Category='engineering'; Desc='2D 制图、图层、标注与 DXF' },
+  [pscustomobject]@{ Name='Parametric'; ZhName='参数化建模'; Dir='parametric'; Category='engineering'; Desc='参数化建模、B-Rep 与 STEP/STL' },
+  [pscustomobject]@{ Name='Circuits'; ZhName='电路设计'; Dir='circuits'; Category='engineering'; Desc='原理图、PCB 布局与 Gerber' },
+  [pscustomobject]@{ Name='Building Design'; ZhName='建筑设计'; Dir='building-design'; Category='engineering'; Desc='BIM、平面/立面/剖面与图纸' },
+  [pscustomobject]@{ Name='Tasks'; ZhName='任务'; Dir='tasks'; Category='productivity'; Desc='个人与共享待办清单' },
+  [pscustomobject]@{ Name='Projects'; ZhName='项目'; Dir='projects'; Category='productivity'; Desc='看板、时间线与项目协作' },
+  [pscustomobject]@{ Name='Wiki'; ZhName='知识库'; Dir='wiki'; Category='productivity'; Desc='团队页面、文档与数据库' },
+  [pscustomobject]@{ Name='Time Tracking'; ZhName='工时管理'; Dir='time-tracking'; Category='productivity'; Desc='按客户/项目记录可计费工时' },
+  [pscustomobject]@{ Name='Surveys'; ZhName='问卷'; Dir='survey'; Category='productivity'; Desc='问卷搭建、分享与结果分析' },
+  [pscustomobject]@{ Name='Accounting'; ZhName='会计'; Dir='accounting'; Category='finance'; Desc='复式记账、对账与财务报表' },
+  [pscustomobject]@{ Name='Invoicing'; ZhName='开票'; Dir='invoicing'; Category='finance'; Desc='报价、发票、周期计费与支付链接' },
+  [pscustomobject]@{ Name='Expenses'; ZhName='报销'; Dir='expense'; Category='finance'; Desc='AI OCR 票据、报销与对账' },
+  [pscustomobject]@{ Name='Cap Table'; ZhName='股权管理'; Dir='cap-table'; Category='finance'; Desc='股权、期权与融资管理' },
+  [pscustomobject]@{ Name='CRM'; ZhName='客户关系'; Dir='crm'; Category='business'; Desc='线索、商机、跟进与销售预测' },
+  [pscustomobject]@{ Name='Help Desk'; ZhName='服务台'; Dir='help-desk'; Category='business'; Desc='共享收件箱、工单与帮助中心' },
+  [pscustomobject]@{ Name='Contracts'; ZhName='合同'; Dir='contracts'; Category='business'; Desc='合同、续约提醒与义务跟踪' },
+  [pscustomobject]@{ Name='Point of Sale'; ZhName='销售终端'; Dir='pos'; Category='business'; Desc='商品、结账、折扣与销售报表' },
+  [pscustomobject]@{ Name='Inventory'; ZhName='库存'; Dir='inventory'; Category='business'; Desc='库存、库位、低库存与供应商' },
+  [pscustomobject]@{ Name='Assets'; ZhName='资产'; Dir='assets'; Category='business'; Desc='设备台账、领用、维护与归还' },
+  [pscustomobject]@{ Name='Hiring'; ZhName='招聘'; Dir='hiring'; Category='business'; Desc='招聘页面、候选人流程与 Offer' },
+  [pscustomobject]@{ Name='Shifts'; ZhName='排班'; Dir='shifts'; Category='business'; Desc='可用时间、排班、换班与考勤' },
+  [pscustomobject]@{ Name='Childcare'; ZhName='托育'; Dir='childcare'; Category='business'; Desc='签到、日报、家长沟通与学费' },
+  [pscustomobject]@{ Name='Field Service'; ZhName='现场服务'; Dir='field-service'; Category='business'; Desc='客户、工单、排程与收款' },
+  [pscustomobject]@{ Name='Legal'; ZhName='法律'; Dir='legal'; Category='business'; Desc='案件、工时、账单与信托账户' },
+  [pscustomobject]@{ Name='Fleet'; ZhName='车队'; Dir='fleet'; Category='business'; Desc='车辆、检查、维修与成本管理' },
+  [pscustomobject]@{ Name='Property Management'; ZhName='物业管理'; Dir='property-management'; Category='business'; Desc='房产、租约、收租与维修' },
+  [pscustomobject]@{ Name='API Client'; ZhName='API 客户端'; Dir='api-client'; Category='developer'; Desc='HTTP 请求构建、测试与同步' },
+  [pscustomobject]@{ Name='Chess'; ZhName='国际象棋'; Dir='chess'; Category='games'; Desc='国际象棋，本地/在线与 AI 对战' },
+  [pscustomobject]@{ Name='Backgammon'; ZhName='西洋双陆棋'; Dir='backgammon'; Category='games'; Desc='西洋双陆棋，本地/在线对战' },
+  [pscustomobject]@{ Name='Checkers'; ZhName='跳棋'; Dir='checkers'; Category='games'; Desc='跳棋，本地/在线与 AI 对战' },
+  [pscustomobject]@{ Name='Solitaire'; ZhName='纸牌'; Dir='solitaire'; Category='games'; Desc='Klondike 与 Spider 纸牌' },
+  [pscustomobject]@{ Name='Sudoku'; ZhName='数独'; Dir='sudoku'; Category='games'; Desc='数独、每日题、铅笔标记与提示' }
 )
 
 $script:Categories = @(
@@ -142,6 +142,31 @@ function Get-AvailableAppPort {
     if (Test-PortAvailable $port) { return $port }
   }
   throw "端口 $($script:PortRangeStart)-$($script:PortRangeEnd) 已全部被占用。"
+}
+
+function Test-PortListening([int]$Port) {
+  try {
+    return [bool](Get-NetTCPConnection -State Listen -LocalPort $Port -ErrorAction Stop)
+  } catch {
+    return $false
+  }
+}
+
+function Open-AppBrowser($Entry) {
+  if (-not $Entry -or $Entry.BrowserOpened) { return }
+  $url = $Entry.Url
+  if (-not $url) { $url = "http://$($Entry.Dir).puter.localhost:$($Entry.Port)/" }
+  try {
+    Start-Process -FilePath $url -ErrorAction Stop
+    $Entry.BrowserOpened = $true
+    $Entry.Url = $url
+  } catch {
+    try {
+      & (Join-Path $env:SystemRoot 'System32\rundll32.exe') 'url.dll,FileProtocolHandler' $url
+      $Entry.BrowserOpened = $true
+      $Entry.Url = $url
+    } catch {}
+  }
 }
 
 function Release-AppPort($Entry) {
@@ -283,7 +308,7 @@ function New-TextBlock([string]$text, [double]$size, $brush, $weight) {
 }
 
 function Update-GlobalStatus {
-  $active = @($script:States.Values | Where-Object { $_.Process -and -not $_.Process.HasExited })
+  $active = @($script:States.Values | Where-Object { $_.State -in @('starting', 'installing', 'running') })
   $errors = @($script:States.Values | Where-Object { $_.State -eq 'error' })
   $count = $active.Count
   $script:RunningCountText.Text = "$count 个运行中"
@@ -462,7 +487,9 @@ function New-AppCard($app) {
   $content.VerticalAlignment = [System.Windows.VerticalAlignment]::Center
   [System.Windows.Controls.Grid]::SetColumn($content, 1)
 
-  $name = New-TextBlock $app.Name 14 $script:BrushText ([System.Windows.FontWeights]::SemiBold)
+  $displayName = if ($app.ZhName) { $app.ZhName } else { $app.Name }
+  $name = New-TextBlock $displayName 14 $script:BrushText ([System.Windows.FontWeights]::SemiBold)
+  $name.ToolTip = "$displayName · $($app.Name)"
   $name.TextTrimming = [System.Windows.TextTrimming]::CharacterEllipsis
   [void]$content.Children.Add($name)
 
@@ -547,7 +574,7 @@ function Render-AppList {
   $query = $script:SearchText.ToLowerInvariant()
   $list = @($script:Apps | Where-Object {
     ($script:SelectedCategory -eq 'all' -or $_.Category -eq $script:SelectedCategory) -and
-    ([string]::IsNullOrEmpty($query) -or (($_.Name + ' ' + $_.Dir + ' ' + $_.Desc).ToLowerInvariant().Contains($query)))
+    ([string]::IsNullOrEmpty($query) -or (($_.Name + ' ' + $_.ZhName + ' ' + $_.Dir + ' ' + $_.Desc).ToLowerInvariant().Contains($query)))
   })
 
   $category = $script:Categories | Where-Object { $_.Key -eq $script:SelectedCategory } | Select-Object -First 1
@@ -581,6 +608,7 @@ function Update-States {
   foreach ($dir in @($script:States.Keys)) {
     $entry = $script:States[$dir]
     if ($entry.Process) {
+      $entry.Process.Refresh()
       if ($entry.Process.HasExited) {
         $code = $entry.Process.ExitCode
         if ($code -ne 0) { $entry.State = 'error' } else { $entry.State = 'stopped' }
@@ -590,9 +618,26 @@ function Update-States {
       } elseif ($entry.State -eq 'starting' -or $entry.State -eq 'installing') {
         $logText = Get-LogText $entry.Log
         if ($logText -match 'ready in|Local:') {
-          $entry.State = 'running'
+          if (-not $entry.ReadyAt) { $entry.ReadyAt = Get-Date }
+          if (Test-PortListening $entry.Port) {
+            $entry.State = 'running'
+            $entry.PortMisses = 0
+            if ($logText -match 'Local:\s+(https?://[^\s]+)') {
+              $entry.Url = $Matches[1].TrimEnd([char]27)
+            }
+            Open-AppBrowser $entry
+          } elseif (((Get-Date) - $entry.ReadyAt).TotalSeconds -gt 8) {
+            $entry.State = 'error'
+          }
         } elseif ($logText -match 'Installing dependencies') {
           $entry.State = 'installing'
+        }
+      } elseif ($entry.State -eq 'running') {
+        if (Test-PortListening $entry.Port) {
+          $entry.PortMisses = 0
+        } else {
+          $entry.PortMisses += 1
+          if ($entry.PortMisses -ge 3) { $entry.State = 'error' }
         }
       }
     }
@@ -603,7 +648,7 @@ function Update-States {
 
 function Start-App($app) {
   if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
-    [System.Windows.MessageBox]::Show('未找到 Node.js。请安装 Node.js 22.12 或更高版本。', 'Everything Launcher', 'OK', 'Warning') | Out-Null
+    [System.Windows.MessageBox]::Show('未找到 Node.js。请安装 Node.js 22.12 或更高版本。', 'Everything 应用中心', 'OK', 'Warning') | Out-Null
     return
   }
   if (-not (Test-Path $script:LogDir)) { New-Item -ItemType Directory -Path $script:LogDir -Force | Out-Null }
@@ -614,7 +659,7 @@ function Start-App($app) {
   try {
     $port = Get-AvailableAppPort
   } catch {
-    [System.Windows.MessageBox]::Show($_.Exception.Message, 'Everything Launcher', 'OK', 'Warning') | Out-Null
+    [System.Windows.MessageBox]::Show($_.Exception.Message, 'Everything 应用中心', 'OK', 'Warning') | Out-Null
     return
   }
   $script:ReservedPorts[$port] = $app.Dir
@@ -627,6 +672,7 @@ function Start-App($app) {
   $psi.CreateNoWindow = $true
   $psi.WindowStyle = [System.Diagnostics.ProcessWindowStyle]::Hidden
   $psi.EnvironmentVariables['EVERYTHING_LAUNCH_NO_PAUSE'] = '1'
+  $psi.EnvironmentVariables['EVERYTHING_LAUNCH_NO_BROWSER'] = '1'
   $psi.EnvironmentVariables['EVERYTHING_LAUNCH_PORT'] = [string]$port
 
   try {
@@ -639,13 +685,18 @@ function Start-App($app) {
       Log = $log
       Port = $port
       Started = Get-Date
+      ReadyAt = $null
+      PortMisses = 0
+      BrowserOpened = $false
+      Url = $null
+      Dir = $app.Dir
     }
-    $script:StatusText.Text = "正在启动 $($app.Name)…"
+    $script:StatusText.Text = "正在启动 $($app.ZhName)…"
     Update-CardState $app.Dir
     Update-GlobalStatus
   } catch {
     [void]$script:ReservedPorts.Remove([int]$port)
-    [System.Windows.MessageBox]::Show("启动 $($app.Name) 失败：`n$($_.Exception.Message)", 'Everything Launcher', 'OK', 'Error') | Out-Null
+    [System.Windows.MessageBox]::Show("启动 $($app.ZhName) 失败：`n$($_.Exception.Message)", 'Everything 应用中心', 'OK', 'Error') | Out-Null
   }
 }
 

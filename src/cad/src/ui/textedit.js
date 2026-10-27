@@ -3,6 +3,7 @@
  * while the canvas shows a live preview of the real drafting text.
  */
 import { h } from './dom.js';
+import { t } from '../i18n/index.js';
 
 export class TextEditor {
   constructor(app) {
@@ -18,13 +19,13 @@ export class TextEditor {
     this.current?.close(true);
     const app = this.app;
     const field = opts.multiline
-      ? h('textarea.input.te-field', { rows: 4, 'aria-label': 'Text', spellcheck: 'true' })
-      : h('input.input.te-field', { type: 'text', 'aria-label': 'Text', spellcheck: 'true', autocomplete: 'off' });
+      ? h('textarea.input.te-field', { rows: 4, 'aria-label': t('Text'), spellcheck: 'true' })
+      : h('input.input.te-field', { type: 'text', 'aria-label': t('Text'), spellcheck: 'true', autocomplete: 'off' });
     field.value = opts.initial ?? '';
-    const ok = h('button.btn.sm.primary', { type: 'button' }, 'Done');
-    const cancel = h('button.btn.sm.ghost', { type: 'button' }, 'Cancel');
-    const hint = h('span.te-hint', opts.multiline ? 'Ctrl+Enter to finish' : 'Enter to finish');
-    const el = h('div.text-editor', { role: 'dialog', 'aria-label': opts.multiline ? 'Multiline text' : 'Text' }, field, h('div.te-bar', hint, cancel, ok));
+    const ok = h('button.btn.sm.primary', { type: 'button' }, t('Done'));
+    const cancel = h('button.btn.sm.ghost', { type: 'button' }, t('Cancel'));
+    const hint = h('span.te-hint', opts.multiline ? t('Ctrl+Enter to finish') : t('Enter to finish'));
+    const el = h('div.text-editor', { role: 'dialog', 'aria-label': opts.multiline ? t('Multiline text') : t('Text') }, field, h('div.te-bar', hint, cancel, ok));
     app.shell.canvasWrap.append(el);
 
     const place = () => {

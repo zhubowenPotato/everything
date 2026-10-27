@@ -5,6 +5,7 @@
  */
 import { buildDimension, buildLeader } from '../core/dims.js';
 import { getPattern } from '../core/hatch/patterns.js';
+import { t } from '../i18n/index.js';
 
 let worker = null;
 let seq = 0;
@@ -18,10 +19,10 @@ function getWorker() {
     const p = pending.get(id);
     if (!p) return;
     pending.delete(id);
-    ok ? p.resolve(result) : p.reject(new Error(error || 'DXF worker failed'));
+    ok ? p.resolve(result) : p.reject(new Error(error || t('DXF worker failed')));
   };
   worker.onerror = (e) => {
-    for (const p of pending.values()) p.reject(new Error(e.message || 'DXF worker crashed'));
+    for (const p of pending.values()) p.reject(new Error(e.message || t('DXF worker crashed')));
     pending.clear();
     worker?.terminate();
     worker = null;

@@ -6,6 +6,7 @@
 import { h, clear } from './dom.js';
 import { icon } from './icons.js';
 import { showMenu } from './menu.js';
+import { t } from '../i18n/index.js';
 
 const MAX_HISTORY = 400;
 
@@ -18,7 +19,7 @@ export class CommandLine {
     this.suggestIndex = -1;
     this.expanded = false;
 
-    this.history = h('div.cmd-history', { role: 'log', 'aria-live': 'polite', 'aria-label': 'Command history' });
+    this.history = h('div.cmd-history', { role: 'log', 'aria-live': 'polite', 'aria-label': t('Command history') });
     this.promptEl = h('span.cmd-prompt', { 'aria-live': 'polite' });
     this.optionsEl = h('span.cmd-options');
     this.input = h('input.cmd-input', {
@@ -26,27 +27,27 @@ export class CommandLine {
       autocomplete: 'off',
       autocapitalize: 'off',
       spellcheck: 'false',
-      'aria-label': 'Command',
+      'aria-label': t('Command'),
       role: 'combobox',
       'aria-expanded': 'false',
       'aria-autocomplete': 'list',
       'aria-controls': 'cmd-suggest',
       enterkeyhint: 'enter',
-      placeholder: 'Type a command',
+      placeholder: t('Type a command'),
     });
-    this.suggestEl = h('ul.cmd-suggest', { id: 'cmd-suggest', role: 'listbox', 'aria-label': 'Command suggestions', hidden: true });
+    this.suggestEl = h('ul.cmd-suggest', { id: 'cmd-suggest', role: 'listbox', 'aria-label': t('Command suggestions'), hidden: true });
     this.menuBtn = h(
       'button.icon-btn.cmd-btn',
-      { type: 'button', 'aria-label': 'Recent commands', 'aria-haspopup': 'menu', 'data-tip': 'Recent commands', onClick: (e) => this.recentMenu(e.currentTarget) },
+      { type: 'button', 'aria-label': t('Recent commands'), 'aria-haspopup': 'menu', 'data-tip': t('Recent commands'), onClick: (e) => this.recentMenu(e.currentTarget) },
       icon('terminal', 16),
     );
     this.expandBtn = h(
       'button.icon-btn.cmd-btn',
-      { type: 'button', 'aria-label': 'Show command history', 'aria-expanded': 'false', 'data-tip': 'Command history', 'data-tip-keys': 'F2', onClick: () => this.toggleHistory() },
+      { type: 'button', 'aria-label': t('Show command history'), 'aria-expanded': 'false', 'data-tip': t('Command history'), 'data-tip-keys': 'F2', onClick: () => this.toggleHistory() },
       icon('history', 16),
     );
-    this.enterBtn = h('button.btn.sm.cmd-action', { type: 'button', onClick: () => this.submit() }, 'Enter');
-    this.cancelBtn = h('button.btn.sm.ghost.cmd-action', { type: 'button', onClick: () => this.app.editor.cancel() }, 'Cancel');
+    this.enterBtn = h('button.btn.sm.cmd-action', { type: 'button', onClick: () => this.submit() }, t('Enter'));
+    this.cancelBtn = h('button.btn.sm.ghost.cmd-action', { type: 'button', onClick: () => this.app.editor.cancel() }, t('Cancel'));
     this.line = h(
       'div.cmd-line',
       this.menuBtn,
@@ -54,7 +55,7 @@ export class CommandLine {
       h('div.cmd-actions', this.cancelBtn, this.enterBtn),
       this.expandBtn,
     );
-    this.el = h('div.cmdline', { role: 'region', 'aria-label': 'Command line' }, this.suggestEl, this.history, this.line);
+    this.el = h('div.cmdline', { role: 'region', 'aria-label': t('Command line') }, this.suggestEl, this.history, this.line);
     this.el.classList.add('idle');
     this._bind();
     this.prompt(null);
@@ -148,7 +149,7 @@ export class CommandLine {
     this.el.classList.toggle('busy', busy);
     this.el.classList.toggle('idle', !busy);
     if (!busy) {
-      this.input.placeholder = 'Type a command';
+      this.input.placeholder = t('Type a command');
       return;
     }
     this.input.placeholder = '';
@@ -164,7 +165,7 @@ export class CommandLine {
               this.input.value = o.key;
               this.submit();
             },
-            'aria-label': `${o.label}${isDef ? ' (default)' : ''}`,
+            'aria-label': isDef ? t('{label} (default)', { label: o.label }) : o.label,
           },
           o.label,
         ),
@@ -197,20 +198,20 @@ export class CommandLine {
     }
     const last = this.app.editor.lastCommand ? this.app.editor.find(this.app.editor.lastCommand) : null;
     if (last && !seen.includes(last)) seen.unshift(last);
-    const items = seen.length ? seen.map((c) => ({ label: c.label, icon: c.icon, action: () => this.app.run(c.name) })) : [{ label: 'No recent commands', disabled: true }];
-    showMenu(anchor, items, { label: 'Recent commands' });
+    const items = seen.length ? seen.map((c) => ({ label: c.label, icon: c.icon, action: () => this.app.run(c.name) })) : [{ label: t('No recent commands'), disabled: true }];
+    showMenu(anchor, items, { label: t('Recent commands') });
   }
 
   _suggest() {
-    const t = this.input.value.trim().toUpperCase();
-    if (!t || this.app.editor.request || /[\d@#<,.-]/.test(t[0])) return this._hideSuggest();
+    const txt = this.input.value.trim().toUpperCase();
+    if (!txt || this.app.editor.request || /[\d@#<,.-]/.test(txt[0])) return this._hideSuggest();
     const seen = new Set();
     const out = [];
     for (const [key, c] of this.app.commands) {
       if (seen.has(c)) continue;
-      if (key.startsWith(t) || c.label.toUpperCase().startsWith(t)) {
+      if (key.startsWith(txt) || c.label.toUpperCase().startsWith(txt)) {
         seen.add(c);
-        out.push({ c, exact: key === t, alias: key !== c.name ? key : null });
+        out.push({ c, exact: key === txt, alias: key !== c.name ? key : null });
       }
     }
     out.sort((a, b) => b.exact - a.exact || a.c.name.length - b.c.name.length);

@@ -7,6 +7,7 @@ import { icon } from './icons.js';
 import { drawPreview } from './preview.js';
 import { PATTERNS } from '../core/hatch/patterns.js';
 import { roving } from './roving.js';
+import { t } from '../i18n/index.js';
 
 /** A scale that shows a few repeats of the pattern in a 20 unit swatch. */
 function swatchScale(p) {
@@ -18,12 +19,12 @@ function swatchScale(p) {
 export function hatchTab(app, st, onChange) {
   return {
     id: 'hatch',
-    label: 'Hatch Creation',
+    label: t('Hatch Creation'),
     contextual: true,
     render() {
       const fg = getComputedStyle(document.documentElement).getPropertyValue('--fg').trim();
       const sq = [0, 0, 0, 20, 0, 0, 20, 20, 0, 0, 20, 0];
-      const gallery = h('div.hatch-gallery', { role: 'radiogroup', 'aria-label': 'Hatch pattern' });
+      const gallery = h('div.hatch-gallery', { role: 'radiogroup', 'aria-label': t('Hatch pattern') });
       const buttons = [];
       for (const p of PATTERNS) {
         const canvas = h('canvas.hatch-swatch', { width: 44, height: 34, 'aria-hidden': 'true' });
@@ -74,27 +75,27 @@ export function hatchTab(app, st, onChange) {
       return h(
         'div.rb-scroller',
         panel(
-          'Boundaries',
-          big('hatch', 'Pick Points', () => app.focusCanvas()),
-          big('select-all', 'Select', () => {
+          t('Boundaries'),
+          big('hatch', t('Pick Points'), () => app.focusCanvas()),
+          big('select-all', t('Select'), () => {
             app.cmdline.setValue('S');
             app.cmdline.submit();
           }),
-          big('undo', 'Undo Last', () => {
+          big('undo', t('Undo Last'), () => {
             app.cmdline.setValue('U');
             app.cmdline.submit();
           }),
         ),
-        panel('Pattern', gallery),
+        panel(t('Pattern'), gallery),
         panel(
-          'Properties',
+          t('Properties'),
           h(
             'div.rb-fields',
-            num('Scale', st.scale, (v) => v > 0 && (st.scale = v), { min: 0.001, step: 0.1 }),
-            num('Angle', +((st.angle * 180) / Math.PI).toFixed(4), (v) => (st.angle = (v * Math.PI) / 180), { step: 15 }),
+            num(t('Scale'), st.scale, (v) => v > 0 && (st.scale = v), { min: 0.001, step: 0.1 }),
+            num(t('Angle'), +((st.angle * 180) / Math.PI).toFixed(4), (v) => (st.angle = (v * Math.PI) / 180), { step: 15 }),
           ),
         ),
-        panel('Close', big('check', 'Close Hatch', () => app.cmdline.submit())),
+        panel(t('Close'), big('check', t('Close Hatch'), () => app.cmdline.submit())),
       );
     },
   };

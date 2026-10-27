@@ -17,20 +17,21 @@ import {
   transformEntity,
 } from '../core/geom/index.js';
 import { insertMatrix, mulMatrix } from '../core/tessellate.js';
+import { t } from '../i18n/index.js';
 
 export const SNAP_MODES = [
-  { id: 'end', label: 'Endpoint', icon: 'snap-end' },
-  { id: 'mid', label: 'Midpoint', icon: 'snap-mid' },
-  { id: 'cen', label: 'Center', icon: 'snap-cen' },
-  { id: 'gcen', label: 'Geometric center', icon: 'snap-gcen' },
-  { id: 'node', label: 'Node', icon: 'snap-node' },
-  { id: 'quad', label: 'Quadrant', icon: 'snap-quad' },
-  { id: 'int', label: 'Intersection', icon: 'snap-int' },
-  { id: 'ext', label: 'Extension', icon: 'snap-ext' },
-  { id: 'ins', label: 'Insertion', icon: 'snap-ins' },
-  { id: 'per', label: 'Perpendicular', icon: 'snap-per' },
-  { id: 'tan', label: 'Tangent', icon: 'snap-tan' },
-  { id: 'nea', label: 'Nearest', icon: 'snap-nea' },
+  { id: 'end', label: t('Endpoint'), icon: 'snap-end' },
+  { id: 'mid', label: t('Midpoint'), icon: 'snap-mid' },
+  { id: 'cen', label: t('Center'), icon: 'snap-cen' },
+  { id: 'gcen', label: t('Geometric center'), icon: 'snap-gcen' },
+  { id: 'node', label: t('Node'), icon: 'snap-node' },
+  { id: 'quad', label: t('Quadrant'), icon: 'snap-quad' },
+  { id: 'int', label: t('Intersection'), icon: 'snap-int' },
+  { id: 'ext', label: t('Extension'), icon: 'snap-ext' },
+  { id: 'ins', label: t('Insertion'), icon: 'snap-ins' },
+  { id: 'per', label: t('Perpendicular'), icon: 'snap-per' },
+  { id: 'tan', label: t('Tangent'), icon: 'snap-tan' },
+  { id: 'nea', label: t('Nearest'), icon: 'snap-nea' },
 ];
 
 export const DEFAULT_SNAPS = ['end', 'mid', 'cen', 'int', 'ext', 'node', 'quad', 'ins'];

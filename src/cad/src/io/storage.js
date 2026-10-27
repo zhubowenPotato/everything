@@ -9,6 +9,7 @@
  * Drawings are files, never key-value records.
  */
 import { puterEnv } from '../platform.js';
+import { t } from '../i18n/index.js';
 
 export const CLOUD_DIR = 'Drawings';
 
@@ -89,7 +90,7 @@ export async function deviceOpen() {
   if (FS_ACCESS) {
     try {
       const [handle] = await window.showOpenFilePicker({
-        types: [{ description: 'Drawings', accept: { 'application/octet-stream': ['.cad', '.dxf'] } }],
+        types: [{ description: t('Drawings'), accept: { 'application/octet-stream': ['.cad', '.dxf'] } }],
         excludeAcceptAllOption: false,
       });
       const file = await handle.getFile();
@@ -139,7 +140,7 @@ export async function deviceSave(blob, name, handle) {
       const ext = name.slice(name.lastIndexOf('.'));
       const h = await window.showSaveFilePicker({
         suggestedName: name,
-        types: [{ description: ext === '.dxf' ? 'DXF drawing' : 'Drawing', accept: { 'application/octet-stream': [ext] } }],
+        types: [{ description: ext === '.dxf' ? t('DXF drawing') : t('Drawing'), accept: { 'application/octet-stream': [ext] } }],
       });
       const w = await h.createWritable();
       await w.write(blob);

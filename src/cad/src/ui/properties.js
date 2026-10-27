@@ -13,26 +13,27 @@ import { dimensionText } from '../core/dims.js';
 import { patternNames } from '../core/hatch/patterns.js';
 import { lwLabel } from './combos.js';
 import { preserveFocus } from './focus.js';
+import { t } from '../i18n/index.js';
 
 const TAU = Math.PI * 2;
 const norm = (a) => ((a % TAU) + TAU) % TAU;
 
 const TYPE_LABEL = {
-  line: 'Line',
-  xline: 'Construction line',
-  ray: 'Ray',
-  circle: 'Circle',
-  arc: 'Arc',
-  ellipse: 'Ellipse',
-  polyline: 'Polyline',
-  spline: 'Spline',
-  point: 'Point',
-  text: 'Text',
-  mtext: 'Multiline text',
-  dimension: 'Dimension',
-  leader: 'Leader',
-  hatch: 'Hatch',
-  insert: 'Block reference',
+  line: t('Line'),
+  xline: t('Construction line'),
+  ray: t('Ray'),
+  circle: t('Circle'),
+  arc: t('Arc'),
+  ellipse: t('Ellipse'),
+  polyline: t('Polyline'),
+  spline: t('Spline'),
+  point: t('Point'),
+  text: t('Text'),
+  mtext: t('Multiline text'),
+  dimension: t('Dimension'),
+  leader: t('Leader'),
+  hatch: t('Hatch'),
+  insert: t('Block reference'),
 };
 
 // Field helpers. kind: length | angle | number | text | textarea | select | bool | ro
@@ -42,14 +43,14 @@ const RO = (label, get, kind = 'length') => ({ label, kind: 'ro', fmt: kind, get
 
 const GEOMETRY = {
   line: [
-    L('Start X', 'x1'),
-    L('Start Y', 'y1'),
-    L('End X', 'x2'),
-    L('End Y', 'y2'),
-    RO('Delta X', (e) => e.x2 - e.x1),
-    RO('Delta Y', (e) => e.y2 - e.y1),
+    L(t('Start X'), 'x1'),
+    L(t('Start Y'), 'y1'),
+    L(t('End X'), 'x2'),
+    L(t('End Y'), 'y2'),
+    RO(t('Delta X'), (e) => e.x2 - e.x1),
+    RO(t('Delta Y'), (e) => e.y2 - e.y1),
     {
-      label: 'Length',
+      label: t('Length'),
       kind: 'length',
       get: (e) => Math.hypot(e.x2 - e.x1, e.y2 - e.y1),
       set: (e, v) => {
@@ -59,7 +60,7 @@ const GEOMETRY = {
       min: 1e-12,
     },
     {
-      label: 'Angle',
+      label: t('Angle'),
       kind: 'angle',
       get: (e) => norm(Math.atan2(e.y2 - e.y1, e.x2 - e.x1)),
       set: (e, v) => {
@@ -68,53 +69,53 @@ const GEOMETRY = {
       },
     },
   ],
-  xline: [L('Base point X', 'x'), L('Base point Y', 'y'), { label: 'Direction', kind: 'angle', get: (e) => norm(Math.atan2(e.dy, e.dx)), set: (e, v) => ({ dx: Math.cos(v), dy: Math.sin(v) }) }],
+  xline: [L(t('Base point X'), 'x'), L(t('Base point Y'), 'y'), { label: t('Direction'), kind: 'angle', get: (e) => norm(Math.atan2(e.dy, e.dx)), set: (e, v) => ({ dx: Math.cos(v), dy: Math.sin(v) }) }],
   circle: [
-    L('Center X', 'cx'),
-    L('Center Y', 'cy'),
-    L('Radius', 'r', { min: 1e-12 }),
-    { label: 'Diameter', kind: 'length', get: (e) => e.r * 2, set: (e, v) => ({ r: v / 2 }), min: 1e-12 },
-    { label: 'Circumference', kind: 'length', get: (e) => e.r * TAU, set: (e, v) => ({ r: v / TAU }), min: 1e-12 },
-    { label: 'Area', kind: 'area', get: (e) => Math.PI * e.r * e.r, set: (e, v) => ({ r: Math.sqrt(v / Math.PI) }), min: 1e-12 },
+    L(t('Center X'), 'cx'),
+    L(t('Center Y'), 'cy'),
+    L(t('Radius'), 'r', { min: 1e-12 }),
+    { label: t('Diameter'), kind: 'length', get: (e) => e.r * 2, set: (e, v) => ({ r: v / 2 }), min: 1e-12 },
+    { label: t('Circumference'), kind: 'length', get: (e) => e.r * TAU, set: (e, v) => ({ r: v / TAU }), min: 1e-12 },
+    { label: t('Area'), kind: 'area', get: (e) => Math.PI * e.r * e.r, set: (e, v) => ({ r: Math.sqrt(v / Math.PI) }), min: 1e-12 },
   ],
   arc: [
-    L('Center X', 'cx'),
-    L('Center Y', 'cy'),
-    L('Radius', 'r', { min: 1e-12 }),
-    A('Start angle', 'start'),
-    A('End angle', 'end'),
-    RO('Total angle', (e) => norm(e.end - e.start) || TAU, 'angle'),
-    RO('Arc length', (e) => e.r * (norm(e.end - e.start) || TAU)),
+    L(t('Center X'), 'cx'),
+    L(t('Center Y'), 'cy'),
+    L(t('Radius'), 'r', { min: 1e-12 }),
+    A(t('Start angle'), 'start'),
+    A(t('End angle'), 'end'),
+    RO(t('Total angle'), (e) => norm(e.end - e.start) || TAU, 'angle'),
+    RO(t('Arc length'), (e) => e.r * (norm(e.end - e.start) || TAU)),
   ],
   ellipse: [
-    L('Center X', 'cx'),
-    L('Center Y', 'cy'),
-    { label: 'Major radius', kind: 'length', get: (e) => Math.hypot(e.mx, e.my), set: (e, v) => { const m = Math.hypot(e.mx, e.my) || 1; return { mx: (e.mx / m) * v, my: (e.my / m) * v }; }, min: 1e-12 },
-    { label: 'Minor radius', kind: 'length', get: (e) => Math.hypot(e.mx, e.my) * e.ratio, set: (e, v) => ({ ratio: Math.min(1, v / (Math.hypot(e.mx, e.my) || 1)) }), min: 1e-12 },
-    { label: 'Radius ratio', kind: 'number', get: (e) => e.ratio, set: (e, v) => ({ ratio: Math.min(1, Math.max(1e-6, v)) }) },
-    A('Start parameter', 'start'),
-    A('End parameter', 'end'),
+    L(t('Center X'), 'cx'),
+    L(t('Center Y'), 'cy'),
+    { label: t('Major radius'), kind: 'length', get: (e) => Math.hypot(e.mx, e.my), set: (e, v) => { const m = Math.hypot(e.mx, e.my) || 1; return { mx: (e.mx / m) * v, my: (e.my / m) * v }; }, min: 1e-12 },
+    { label: t('Minor radius'), kind: 'length', get: (e) => Math.hypot(e.mx, e.my) * e.ratio, set: (e, v) => ({ ratio: Math.min(1, v / (Math.hypot(e.mx, e.my) || 1)) }), min: 1e-12 },
+    { label: t('Radius ratio'), kind: 'number', get: (e) => e.ratio, set: (e, v) => ({ ratio: Math.min(1, Math.max(1e-6, v)) }) },
+    A(t('Start parameter'), 'start'),
+    A(t('End parameter'), 'end'),
   ],
   polyline: [
-    { label: 'Vertices', kind: 'ro', fmt: 'int', get: (e) => e.pts.length / 3 },
-    { label: 'Global width', kind: 'length', get: (e) => e.width || 0, set: (e, v) => ({ width: Math.max(0, v) }) },
-    { label: 'Closed', kind: 'bool', get: (e) => !!e.closed, set: (e, v) => ({ closed: v }) },
-    RO('Length', (e) => safe(() => lengthOf(e))),
-    RO('Area', (e) => (e.closed ? safe(() => areaOf(e)) : NaN), 'area'),
+    { label: t('Vertices'), kind: 'ro', fmt: 'int', get: (e) => e.pts.length / 3 },
+    { label: t('Global width'), kind: 'length', get: (e) => e.width || 0, set: (e, v) => ({ width: Math.max(0, v) }) },
+    { label: t('Closed'), kind: 'bool', get: (e) => !!e.closed, set: (e, v) => ({ closed: v }) },
+    RO(t('Length'), (e) => safe(() => lengthOf(e))),
+    RO(t('Area'), (e) => (e.closed ? safe(() => areaOf(e)) : NaN), 'area'),
   ],
   spline: [
-    { label: 'Degree', kind: 'ro', fmt: 'int', get: (e) => e.degree },
-    { label: 'Fit points', kind: 'ro', fmt: 'int', get: (e) => (e.fit?.length || 0) / 2 },
-    { label: 'Control points', kind: 'ro', fmt: 'int', get: (e) => e.ctrl.length / 2 },
-    { label: 'Closed', kind: 'ro', fmt: 'bool', get: (e) => !!e.closed },
-    RO('Length', (e) => safe(() => lengthOf(e))),
+    { label: t('Degree'), kind: 'ro', fmt: 'int', get: (e) => e.degree },
+    { label: t('Fit points'), kind: 'ro', fmt: 'int', get: (e) => (e.fit?.length || 0) / 2 },
+    { label: t('Control points'), kind: 'ro', fmt: 'int', get: (e) => e.ctrl.length / 2 },
+    { label: t('Closed'), kind: 'ro', fmt: 'bool', get: (e) => !!e.closed },
+    RO(t('Length'), (e) => safe(() => lengthOf(e))),
   ],
-  point: [L('Position X', 'x'), L('Position Y', 'y')],
+  point: [L(t('Position X'), 'x'), L(t('Position Y'), 'y')],
   text: [
-    { label: 'Contents', kind: 'text', get: (e) => e.value, set: (e, v) => ({ value: v }) },
-    { label: 'Style', kind: 'select', options: (d) => [...d.textStyles.keys()], get: (e) => e.style, set: (e, v) => ({ style: v }) },
+    { label: t('Contents'), kind: 'text', get: (e) => e.value, set: (e, v) => ({ value: v }) },
+    { label: t('Style'), kind: 'select', options: (d) => [...d.textStyles.keys()], get: (e) => e.style, set: (e, v) => ({ style: v }) },
     {
-      label: 'Justify',
+      label: t('Justify'),
       kind: 'select',
       options: () => ['left|baseline', 'center|baseline', 'right|baseline', 'left|middle', 'center|middle', 'right|middle', 'left|top', 'center|top', 'right|top', 'left|bottom', 'center|bottom', 'right|bottom'],
       label2: (v) => v.replace('|', ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
@@ -124,56 +125,56 @@ const GEOMETRY = {
         return { halign, valign };
       },
     },
-    L('Height', 'h', { min: 1e-9 }),
-    A('Rotation', 'rot'),
-    { label: 'Width factor', kind: 'number', get: (e) => e.widthFactor ?? 1, set: (e, v) => ({ widthFactor: Math.max(0.01, v) }) },
-    A('Obliquing', 'oblique'),
-    L('Position X', 'x'),
-    L('Position Y', 'y'),
+    L(t('Height'), 'h', { min: 1e-9 }),
+    A(t('Rotation'), 'rot'),
+    { label: t('Width factor'), kind: 'number', get: (e) => e.widthFactor ?? 1, set: (e, v) => ({ widthFactor: Math.max(0.01, v) }) },
+    A(t('Obliquing'), 'oblique'),
+    L(t('Position X'), 'x'),
+    L(t('Position Y'), 'y'),
   ],
   mtext: [
-    { label: 'Contents', kind: 'textarea', get: (e) => e.value, set: (e, v) => ({ value: v }) },
-    { label: 'Style', kind: 'select', options: (d) => [...d.textStyles.keys()], get: (e) => e.style, set: (e, v) => ({ style: v }) },
+    { label: t('Contents'), kind: 'textarea', get: (e) => e.value, set: (e, v) => ({ value: v }) },
+    { label: t('Style'), kind: 'select', options: (d) => [...d.textStyles.keys()], get: (e) => e.style, set: (e, v) => ({ style: v }) },
     {
-      label: 'Attachment',
+      label: t('Attachment'),
       kind: 'select',
       options: () => ['tl', 'tc', 'tr', 'ml', 'mc', 'mr', 'bl', 'bc', 'br'],
-      label2: (v) => ({ t: 'Top', m: 'Middle', b: 'Bottom' })[v[0]] + ' ' + ({ l: 'left', c: 'center', r: 'right' })[v[1]],
+      label2: (v) => ({ t: t('Top'), m: t('Middle'), b: t('Bottom') })[v[0]] + ' ' + ({ l: t('left'), c: t('center'), r: t('right') })[v[1]],
       get: (e) => e.attach || 'tl',
       set: (e, v) => ({ attach: v }),
     },
-    L('Text height', 'h', { min: 1e-9 }),
-    A('Rotation', 'rot'),
-    L('Defined width', 'width'),
-    { label: 'Line spacing factor', kind: 'number', get: (e) => e.lineSpacing ?? 1, set: (e, v) => ({ lineSpacing: Math.max(0.25, v) }) },
-    L('Position X', 'x'),
-    L('Position Y', 'y'),
+    L(t('Text height'), 'h', { min: 1e-9 }),
+    A(t('Rotation'), 'rot'),
+    L(t('Defined width'), 'width'),
+    { label: t('Line spacing factor'), kind: 'number', get: (e) => e.lineSpacing ?? 1, set: (e, v) => ({ lineSpacing: Math.max(0.25, v) }) },
+    L(t('Position X'), 'x'),
+    L(t('Position Y'), 'y'),
   ],
   dimension: [
-    { label: 'Dim style', kind: 'select', options: (d) => [...d.dimStyles.keys()], get: (e) => e.style, set: (e, v) => ({ style: v }) },
-    { label: 'Type', kind: 'ro', fmt: 'text', get: (e) => e.dimType[0].toUpperCase() + e.dimType.slice(1) },
-    { label: 'Measurement', kind: 'ro', fmt: 'dim', get: (e) => e },
-    { label: 'Text override', kind: 'text', get: (e) => e.text || '', set: (e, v) => ({ text: v }), placeholder: 'Measured value' },
+    { label: t('Dim style'), kind: 'select', options: (d) => [...d.dimStyles.keys()], get: (e) => e.style, set: (e, v) => ({ style: v }) },
+    { label: t('Type'), kind: 'ro', fmt: 'text', get: (e) => e.dimType[0].toUpperCase() + e.dimType.slice(1) },
+    { label: t('Measurement'), kind: 'ro', fmt: 'dim', get: (e) => e },
+    { label: t('Text override'), kind: 'text', get: (e) => e.text || '', set: (e, v) => ({ text: v }), placeholder: t('Measured value') },
   ],
   leader: [
-    { label: 'Text', kind: 'text', get: (e) => e.text || '', set: (e, v) => ({ text: v }) },
-    L('Text height', 'h', { min: 1e-9 }),
-    { label: 'Dim style', kind: 'select', options: (d) => [...d.dimStyles.keys()], get: (e) => e.style, set: (e, v) => ({ style: v }) },
+    { label: t('Text'), kind: 'text', get: (e) => e.text || '', set: (e, v) => ({ text: v }) },
+    L(t('Text height'), 'h', { min: 1e-9 }),
+    { label: t('Dim style'), kind: 'select', options: (d) => [...d.dimStyles.keys()], get: (e) => e.style, set: (e, v) => ({ style: v }) },
   ],
   hatch: [
-    { label: 'Pattern', kind: 'select', options: () => patternNames(), get: (e) => e.pattern, set: (e, v) => ({ pattern: v }) },
-    { label: 'Scale', kind: 'number', get: (e) => e.scale ?? 1, set: (e, v) => ({ scale: Math.max(1e-6, v) }) },
-    A('Angle', 'angle'),
-    { label: 'Loops', kind: 'ro', fmt: 'int', get: (e) => e.loops?.length || 0 },
-    RO('Area', (e) => safe(() => areaOf(e)), 'area'),
+    { label: t('Pattern'), kind: 'select', options: () => patternNames(), get: (e) => e.pattern, set: (e, v) => ({ pattern: v }) },
+    { label: t('Scale'), kind: 'number', get: (e) => e.scale ?? 1, set: (e, v) => ({ scale: Math.max(1e-6, v) }) },
+    A(t('Angle'), 'angle'),
+    { label: t('Loops'), kind: 'ro', fmt: 'int', get: (e) => e.loops?.length || 0 },
+    RO(t('Area'), (e) => safe(() => areaOf(e)), 'area'),
   ],
   insert: [
-    { label: 'Name', kind: 'select', options: (d) => [...d.blocks.keys()], get: (e) => e.name, set: (e, v) => ({ name: v }) },
-    L('Position X', 'x'),
-    L('Position Y', 'y'),
-    { label: 'Scale X', kind: 'number', get: (e) => e.sx ?? 1, set: (e, v) => (v ? { sx: v } : {}) },
-    { label: 'Scale Y', kind: 'number', get: (e) => e.sy ?? 1, set: (e, v) => (v ? { sy: v } : {}) },
-    A('Rotation', 'rot'),
+    { label: t('Name'), kind: 'select', options: (d) => [...d.blocks.keys()], get: (e) => e.name, set: (e, v) => ({ name: v }) },
+    L(t('Position X'), 'x'),
+    L(t('Position Y'), 'y'),
+    { label: t('Scale X'), kind: 'number', get: (e) => e.sx ?? 1, set: (e, v) => (v ? { sx: v } : {}) },
+    { label: t('Scale Y'), kind: 'number', get: (e) => e.sy ?? 1, set: (e, v) => (v ? { sy: v } : {}) },
+    A(t('Rotation'), 'rot'),
   ],
 };
 GEOMETRY.ray = GEOMETRY.xline;
@@ -191,7 +192,7 @@ export class PropertiesPalette {
     this.app = app;
     this.filter = 'all';
     this.collapsed = loadCollapsed();
-    this.typeSelect = h('select.input.sm', { 'aria-label': 'Objects to show' });
+    this.typeSelect = h('select.input.sm', { 'aria-label': t('Objects to show') });
     this.typeSelect.addEventListener('change', () => {
       this.filter = this.typeSelect.value;
       this.render();
@@ -202,8 +203,8 @@ export class PropertiesPalette {
       h(
         'div.props-head',
         this.typeSelect,
-        h('button.icon-btn.sm', { type: 'button', 'aria-label': 'Quick select', 'data-tip': 'Quick select', onClick: () => app.run('QSELECT') }, icon('quick-select', 16)),
-        h('button.icon-btn.sm', { type: 'button', 'aria-label': 'Select all', 'data-tip': 'Select all', onClick: () => app.run('SELECTALL') }, icon('select-all', 16)),
+        h('button.icon-btn.sm', { type: 'button', 'aria-label': t('Quick select'), 'data-tip': t('Quick select'), onClick: () => app.run('QSELECT') }, icon('quick-select', 16)),
+        h('button.icon-btn.sm', { type: 'button', 'aria-label': t('Select all'), 'data-tip': t('Select all'), onClick: () => app.run('SELECTALL') }, icon('select-all', 16)),
       ),
       this.body,
     );
@@ -238,31 +239,31 @@ export class PropertiesPalette {
     }
     clear(this.typeSelect);
     if (!sel.length) {
-      this.typeSelect.append(h('option', { value: 'none' }, 'No selection'));
+      this.typeSelect.append(h('option', { value: 'none' }, t('No selection')));
       this.typeSelect.disabled = true;
     } else {
       this.typeSelect.disabled = groups.size === 1;
-      if (groups.size > 1) this.typeSelect.append(h('option', { value: 'all' }, `All (${sel.length})`));
-      for (const [t, list] of groups) this.typeSelect.append(h('option', { value: t }, `${TYPE_LABEL[t] ?? t} (${list.length})`));
+      if (groups.size > 1) this.typeSelect.append(h('option', { value: 'all' }, t('All ({count})', { count: sel.length })));
+      for (const [ty, list] of groups) this.typeSelect.append(h('option', { value: ty }, t('{label} ({count})', { label: TYPE_LABEL[ty] ?? ty, count: list.length })));
       if (this.filter !== 'all' && !groups.has(this.filter)) this.filter = 'all';
       if (groups.size === 1) this.filter = [...groups.keys()][0];
       this.typeSelect.value = this.filter;
     }
     clear(this.body);
     if (!sel.length) {
-      this.body.append(this.section('General', this.currentFields()));
-      this.body.append(this.section('View', this.viewFields(), true));
+      this.body.append(this.section(t('General'), this.currentFields()));
+      this.body.append(this.section(t('View'), this.viewFields(), true));
       return;
     }
     const ents = this.filter === 'all' ? sel : groups.get(this.filter) || sel;
-    this.body.append(this.section('General', this.generalFields(ents)));
+    this.body.append(this.section(t('General'), this.generalFields(ents)));
     if (this.filter !== 'all' || groups.size === 1) {
       const type = ents[0].type;
       const fields = GEOMETRY[type] || [];
       const geo = fields.map((f) => this.entityField(f, ents));
-      const title = ['text', 'mtext'].includes(type) ? 'Text' : type === 'dimension' || type === 'leader' ? 'Annotation' : type === 'hatch' ? 'Pattern' : type === 'insert' ? 'Block' : 'Geometry';
+      const title = ['text', 'mtext'].includes(type) ? t('Text') : type === 'dimension' || type === 'leader' ? t('Annotation') : type === 'hatch' ? t('Pattern') : type === 'insert' ? t('Block') : t('Geometry');
       this.body.append(this.section(title, geo));
-      if (type === 'polyline' && ents.length === 1) this.body.append(this.section('Vertices', this.vertexFields(ents[0]), true));
+      if (type === 'polyline' && ents.length === 1) this.body.append(this.section(t('Vertices'), this.vertexFields(ents[0]), true));
     }
   }
 
@@ -288,7 +289,7 @@ export class PropertiesPalette {
   }
 
   /** Commit a patch function to every entity in `ents` as one step. */
-  apply(ents, patchFn, label = 'Change properties') {
+  apply(ents, patchFn, label = t('Change properties')) {
     const d = this.app.doc.drawing;
     d.transaction(label, () => {
       for (const e of ents) {
@@ -307,23 +308,23 @@ export class PropertiesPalette {
       return ents.every((e) => e[k] === v) ? v : undefined;
     };
     const rows = [];
-    rows.push(...this.row('Color', this.colorControl(common('color'), (v) => this.apply(ents, () => ({ color: v }), 'Change color'))));
+    rows.push(...this.row(t('Color'), this.colorControl(common('color'), (v) => this.apply(ents, () => ({ color: v }), t('Change color')))));
     rows.push(
       ...this.row(
-        'Layer',
-        this.select([...d.layers.keys()], common('layer'), (v) => this.apply(ents, () => ({ layer: v }), 'Change layer')),
+        t('Layer'),
+        this.select([...d.layers.keys()], common('layer'), (v) => this.apply(ents, () => ({ layer: v }), t('Change layer'))),
       ),
     );
     rows.push(
       ...this.row(
-        'Linetype',
-        this.select(['ByLayer', 'ByBlock', ...d.linetypes.keys()], common('linetype'), (v) => this.apply(ents, () => ({ linetype: v }), 'Change linetype')),
+        t('Linetype'),
+        this.select(['ByLayer', 'ByBlock', ...d.linetypes.keys()], common('linetype'), (v) => this.apply(ents, () => ({ linetype: v }), t('Change linetype'))),
       ),
     );
-    rows.push(...this.row('Linetype scale', this.numberInput(common('ltscale') ?? (ents.every((e) => e.ltscale === undefined) ? 1 : undefined), (v) => v > 0 && this.apply(ents, () => ({ ltscale: v })))));
+    rows.push(...this.row(t('Linetype scale'), this.numberInput(common('ltscale') ?? (ents.every((e) => e.ltscale === undefined) ? 1 : undefined), (v) => v > 0 && this.apply(ents, () => ({ ltscale: v })))));
     rows.push(
       ...this.row(
-        'Lineweight',
+        t('Lineweight'),
         this.select([LW_BYLAYER, LW_BYBLOCK, LW_DEFAULT, ...LINEWEIGHTS], common('lineweight'), (v) => this.apply(ents, () => ({ lineweight: Number(v) })), lwLabel),
       ),
     );
@@ -335,12 +336,12 @@ export class PropertiesPalette {
     const d = app.doc.drawing;
     const hd = d.header;
     const rows = [];
-    rows.push(...this.row('Color', this.colorControl(hd.ccolor, (v) => app.applyProperty('color', v))));
-    rows.push(...this.row('Layer', this.select([...d.layers.keys()], hd.clayer, (v) => app.setCurrentLayer(v))));
-    rows.push(...this.row('Linetype', this.select(['ByLayer', 'ByBlock', ...d.linetypes.keys()], hd.cltype, (v) => app.applyProperty('linetype', v))));
-    rows.push(...this.row('Lineweight', this.select([LW_BYLAYER, LW_BYBLOCK, LW_DEFAULT, ...LINEWEIGHTS], hd.clweight, (v) => app.applyProperty('lineweight', Number(v)), lwLabel)));
-    rows.push(...this.row('Global linetype scale', this.numberInput(hd.ltscale, (v) => v > 0 && d.transaction('Linetype scale', () => d.setHeader({ ltscale: v })))));
-    rows.push(...this.row('Text height', this.lengthInput(hd.textHeight, (v) => v > 0 && d.transaction('Text height', () => d.setHeader({ textHeight: v })))));
+    rows.push(...this.row(t('Color'), this.colorControl(hd.ccolor, (v) => app.applyProperty('color', v))));
+    rows.push(...this.row(t('Layer'), this.select([...d.layers.keys()], hd.clayer, (v) => app.setCurrentLayer(v))));
+    rows.push(...this.row(t('Linetype'), this.select(['ByLayer', 'ByBlock', ...d.linetypes.keys()], hd.cltype, (v) => app.applyProperty('linetype', v))));
+    rows.push(...this.row(t('Lineweight'), this.select([LW_BYLAYER, LW_BYBLOCK, LW_DEFAULT, ...LINEWEIGHTS], hd.clweight, (v) => app.applyProperty('lineweight', Number(v)), lwLabel)));
+    rows.push(...this.row(t('Global linetype scale'), this.numberInput(hd.ltscale, (v) => v > 0 && d.transaction(t('Linetype scale'), () => d.setHeader({ ltscale: v })))));
+    rows.push(...this.row(t('Text height'), this.lengthInput(hd.textHeight, (v) => v > 0 && d.transaction(t('Text height'), () => d.setHeader({ textHeight: v })))));
     return rows;
   }
 
@@ -348,10 +349,10 @@ export class PropertiesPalette {
     const cam = this.app.camera;
     const hd = this.app.doc.drawing.header;
     const rows = [];
-    rows.push(...this.row('Center X', h('output.props-ro', formatLinear(cam.cx, hd))));
-    rows.push(...this.row('Center Y', h('output.props-ro', formatLinear(cam.cy, hd))));
-    rows.push(...this.row('Width', h('output.props-ro', formatLinear(cam.width / cam.scale, hd))));
-    rows.push(...this.row('Height', h('output.props-ro', formatLinear(cam.height / cam.scale, hd))));
+    rows.push(...this.row(t('Center X'), h('output.props-ro', formatLinear(cam.cx, hd))));
+    rows.push(...this.row(t('Center Y'), h('output.props-ro', formatLinear(cam.cy, hd))));
+    rows.push(...this.row(t('Width'), h('output.props-ro', formatLinear(cam.width / cam.scale, hd))));
+    rows.push(...this.row(t('Height'), h('output.props-ro', formatLinear(cam.height / cam.scale, hd))));
     return rows;
   }
 
@@ -363,10 +364,10 @@ export class PropertiesPalette {
       const set = (k) => (v) => {
         const pts = d.get(ent.id).pts.slice();
         pts[i * 3 + k] = v;
-        d.transaction('Edit vertex', () => d.update(ent.id, { pts }));
+        d.transaction(t('Edit vertex'), () => d.update(ent.id, { pts }));
       };
-      rows.push(...this.row(`Vertex ${i + 1} X`, this.lengthInput(ent.pts[i * 3], set(0))));
-      rows.push(...this.row(`Vertex ${i + 1} Y`, this.lengthInput(ent.pts[i * 3 + 1], set(1))));
+      rows.push(...this.row(t('Vertex {n} X', { n: i + 1 }), this.lengthInput(ent.pts[i * 3], set(0))));
+      rows.push(...this.row(t('Vertex {n} Y', { n: i + 1 }), this.lengthInput(ent.pts[i * 3 + 1], set(1))));
     }
     return rows;
   }
@@ -379,10 +380,10 @@ export class PropertiesPalette {
     const v = same ? vals[0] : undefined;
     if (f.kind === 'ro') {
       let text = '';
-      if (v === undefined) text = 'Varies';
+      if (v === undefined) text = t('Varies');
       else if (f.fmt === 'angle') text = formatAngle(v, hd, { symbol: true });
       else if (f.fmt === 'int') text = String(v);
-      else if (f.fmt === 'bool') text = v ? 'Yes' : 'No';
+      else if (f.fmt === 'bool') text = v ? t('Yes') : t('No');
       else if (f.fmt === 'text') text = String(v);
       else if (f.fmt === 'area') text = Number.isFinite(v) ? v.toFixed(hd.linearPrecision ?? 4) : '';
       else if (f.fmt === 'dim') {
@@ -413,7 +414,7 @@ export class PropertiesPalette {
         control = this.textArea(v, commit);
         break;
       case 'bool':
-        control = this.select([true, false], v, (x) => commit(x === 'true' || x === true), (b) => (b ? 'Yes' : 'No'));
+        control = this.select([true, false], v, (x) => commit(x === 'true' || x === true), (b) => (b ? t('Yes') : t('No')));
         break;
       case 'select':
         control = this.select(f.options(d), v, commit, f.label2);
@@ -425,7 +426,7 @@ export class PropertiesPalette {
   // Controls ------------------------------------------------------------------
 
   _input(value, display, parse, onCommit, attrs = {}) {
-    const inp = h('input.input.sm', { type: 'text', value: display(value), placeholder: value === undefined ? 'Varies' : '', spellcheck: 'false', ...attrs });
+    const inp = h('input.input.sm', { type: 'text', value: display(value), placeholder: value === undefined ? t('Varies') : '', spellcheck: 'false', ...attrs });
     let orig = inp.value;
     const commit = () => {
       if (inp.value === orig) return;
@@ -497,7 +498,7 @@ export class PropertiesPalette {
 
   select(options, value, onChange, labelFn) {
     const sel = h('select.input.sm');
-    if (value === undefined) sel.append(h('option', { value: '', disabled: true, selected: true }, 'Varies'));
+    if (value === undefined) sel.append(h('option', { value: '', disabled: true, selected: true }, t('Varies')));
     for (const o of options) {
       sel.append(h('option', { value: String(o), selected: value !== undefined && String(o) === String(value) }, labelFn ? labelFn(o) : String(o)));
     }
@@ -517,14 +518,14 @@ export class PropertiesPalette {
       {
         type: 'button',
         'aria-haspopup': 'dialog',
-        'aria-label': `Color: ${value === undefined ? 'varies' : colorLabel(value)}`,
+        'aria-label': t('Color: {value}', { value: value === undefined ? t('varies') : colorLabel(value) }),
         onClick: async () => {
           const c = await app.colorDialog(value);
           if (c !== null && c !== undefined) onChange(c);
         },
       },
       value === undefined ? null : h('span.swatch', { style: { background: colorCss(value) } }),
-      h('span', value === undefined ? 'Varies' : colorLabel(value)),
+      h('span', value === undefined ? t('Varies') : colorLabel(value)),
     );
     return btn;
   }

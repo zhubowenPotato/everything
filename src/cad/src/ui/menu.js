@@ -7,6 +7,7 @@
  */
 import { h } from './dom.js';
 import { icon } from './icons.js';
+import { t } from '../i18n/index.js';
 
 /** Open menus, outermost first (submenus stack on top of their parent). */
 const stack = [];
@@ -33,7 +34,7 @@ export function showMenu(at, items, opts = {}) {
   const restore = () => {
     if (opts.restoreFocus !== false && rootFocus?.isConnected) rootFocus.focus({ preventScroll: true });
   };
-  const el = h('div.menu', { role: 'menu', tabindex: '-1', 'aria-label': opts.label || 'Menu' });
+  const el = h('div.menu', { role: 'menu', tabindex: '-1', 'aria-label': opts.label || t('Menu') });
   if (opts.className) el.classList.add(opts.className);
   const entries = [];
   for (const it of items) {

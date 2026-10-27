@@ -16,6 +16,7 @@
  * are sized for drawings in millimetres. 'SOLID' has no families and means a
  * solid fill.
  */
+import { t } from '../../i18n/index.js';
 
 const D2R = Math.PI / 180;
 const S3 = Math.sqrt(3);
@@ -139,62 +140,62 @@ const GRAVEL_A = [8, 0],
 const DEFS = [
   {
     name: 'SOLID',
-    description: 'Solid fill',
+    description: t('Solid fill'),
     families: [],
   },
   {
     name: 'LINES',
-    description: 'Single diagonal lines at 45 degrees, 3 apart',
+    description: t('Single diagonal lines at 45 degrees, 3 apart'),
     families: [line(45, 0, 0, 0, 3)],
   },
   {
     name: 'CROSS',
-    description: 'Diagonal crosshatch, 3 apart',
+    description: t('Diagonal crosshatch, 3 apart'),
     families: [line(45, 0, 0, 0, 3), line(135, 0, 0, 0, 3)],
   },
   {
     name: 'DIAMOND',
-    description: 'Flat diamonds from lines at 30 and 150 degrees',
+    description: t('Flat diamonds from lines at 30 and 150 degrees'),
     families: [line(30, 0, 0, 0, 3), line(150, 0, 0, 0, 3)],
   },
   {
     name: 'GRID',
-    description: 'Square grid, 5 x 5',
+    description: t('Square grid, 5 x 5'),
     families: [line(0, 0, 0, 0, 5), line(90, 0, 0, 0, 5)],
   },
   {
     name: 'DOTS',
-    description: 'Staggered dots, 3 apart',
+    description: t('Staggered dots, 3 apart'),
     families: [line(0, 0, 0, 1.5, 3, [0, -3])],
   },
   {
     name: 'DASH',
-    description: 'Staggered horizontal dashes',
+    description: t('Staggered horizontal dashes'),
     families: [line(0, 0, 0, 2.5, 2.5, [2.5, -2.5])],
   },
   {
     name: 'BRICK',
-    description: 'Running bond brickwork, 8 x 4 units',
+    description: t('Running bond brickwork, 8 x 4 units'),
     families: [line(0, 0, 0, 0, 4), line(90, 0, 0, 4, 4, [4, -4])],
   },
   {
     name: 'BLOCK',
-    description: 'Stacked blocks with aligned joints, 10 x 5 units',
+    description: t('Stacked blocks with aligned joints, 10 x 5 units'),
     families: [line(0, 0, 0, 0, 5), line(90, 0, 0, 0, 10)],
   },
   {
     name: 'PLANKS',
-    description: 'Boards 18 long and 4 wide with joints shifted by a third',
+    description: t('Boards 18 long and 4 wide with joints shifted by a third'),
     families: [line(0, 0, 0, 0, 4), ...lattice([18, 0], [6, 4], [['seg', 0, 0, -1, 3, 1 / 3]])],
   },
   {
     name: 'HERRINGBONE',
-    description: 'Herringbone paving, 5 x 2.5 units at 45 degrees',
+    description: t('Herringbone paving, 5 x 2.5 units at 45 degrees'),
     families: scaled(rotate([line(0, -1, 0, 1, 1, [3, -1]), line(90, 0, 0, -1, 1, [3, -1])], 45), 2.5),
   },
   {
     name: 'BASKET',
-    description: 'Basket weave: 3 x 3 squares with alternating pairs of lines',
+    description: t('Basket weave: 3 x 3 squares with alternating pairs of lines'),
     families: [
       line(0, 0, 0, 0, 3),
       line(90, 0, 0, 0, 3),
@@ -206,17 +207,17 @@ const DEFS = [
   },
   {
     name: 'HONEYCOMB',
-    description: 'Regular hexagons with sides of 3',
+    description: t('Regular hexagons with sides of 3'),
     families: scaled([...HEX_ROW, ...rotate(HEX_ROW, 60), ...rotate(HEX_ROW, 120)], 3),
   },
   {
     name: 'TRIANGLES',
-    description: 'Equilateral triangles with sides of 4',
+    description: t('Equilateral triangles with sides of 4'),
     families: [line(0, 0, 0, 0, 2 * S3), line(60, 0, 0, 0, 2 * S3), line(120, 0, 0, 0, 2 * S3)],
   },
   {
     name: 'RIPPLE',
-    description: 'Rows of shallow zigzags made of straight dashes',
+    description: t('Rows of shallow zigzags made of straight dashes'),
     families: lattice([4, 0], [0, 3], [
       ['seg', 0, 0, 1, 1, 0.5],
       ['seg', 0, 0, -1, 1, 0.5],
@@ -224,7 +225,7 @@ const DEFS = [
   },
   {
     name: 'BATTING',
-    description: 'Soft insulation: tall zigzags between band lines 6 apart',
+    description: t('Soft insulation: tall zigzags between band lines 6 apart'),
     families: [
       line(0, 0, 0, 0, 6),
       ...lattice([3, 0], [0, 6], [
@@ -235,12 +236,12 @@ const DEFS = [
   },
   {
     name: 'STEEL',
-    description: 'Pairs of diagonal lines 0.8 apart, pairs 4 apart',
+    description: t('Pairs of diagonal lines 0.8 apart, pairs 4 apart'),
     families: [line(45, 0, 0, 0, 4), line(45, -0.8 * Math.SQRT1_2, 0.8 * Math.SQRT1_2, 0, 4)],
   },
   {
     name: 'AGGREGATE',
-    description: 'Concrete-like mix of small triangles, dots and short dashes',
+    description: t('Concrete-like mix of small triangles, dots and short dashes'),
     families: lattice(CONCRETE_A, CONCRETE_B, [
       ...triangle(CONCRETE_A, CONCRETE_B, 0.8, 1.2, 0.15, 1),
       ...triangle(CONCRETE_A, CONCRETE_B, 7.5, 6.2, 0.11, -1),
@@ -254,7 +255,7 @@ const DEFS = [
   },
   {
     name: 'SOIL',
-    description: 'Earth-like bundles of three short lines, alternating horizontal and vertical',
+    description: t('Earth-like bundles of three short lines, alternating horizontal and vertical'),
     families: [
       line(0, 0.75, 1.5, 6, 6, [4.5, -7.5]),
       line(0, 0.75, 3, 6, 6, [4.5, -7.5]),
@@ -266,7 +267,7 @@ const DEFS = [
   },
   {
     name: 'PEBBLES',
-    description: 'Gravel-like scattered irregular stones',
+    description: t('Gravel-like scattered irregular stones'),
     families: lattice(GRAVEL_A, GRAVEL_B, [
       ...pebble(GRAVEL_A, GRAVEL_B, 0.5, 0.6, 0.12, 0.08, 1),
       ...pebble(GRAVEL_A, GRAVEL_B, 9.2, 5.6, 0.09, 0.05, -1),
@@ -276,7 +277,7 @@ const DEFS = [
   },
   {
     name: 'SAND',
-    description: 'Dense irregular dots',
+    description: t('Dense irregular dots'),
     families: lattice([2.6, 0], [0.9, 2.3], [
       ['dot', 0, 0],
       ['dot', 1.45, 0.85],

@@ -5,6 +5,7 @@
  */
 import { h } from './dom.js';
 import { icon } from './icons.js';
+import { t } from '../i18n/index.js';
 
 /**
  * openDialog({ title, body, actions: [{ label, primary, danger, value, onClick }], size, onClose })
@@ -48,7 +49,7 @@ export function openDialog({ title, body, actions = [], size = 'md', className, 
       h(
         'header.dialog-head',
         h('h2.dialog-title', { id: titleId }, title),
-        h('button.icon-btn.dialog-x', { type: 'button', 'aria-label': 'Close', onClick: () => close(null) }, icon('x', 18)),
+        h('button.icon-btn.dialog-x', { type: 'button', 'aria-label': t('Close'), onClick: () => close(null) }, icon('x', 18)),
       ),
       h('div.dialog-body', body),
     );
@@ -63,8 +64,8 @@ export function openDialog({ title, body, actions = [], size = 'md', className, 
     dlg.addEventListener('keydown', (e) => {
       e.stopPropagation();
       // Enter in a single-line field confirms, as in any form.
-      const t = e.target;
-      if (e.key === 'Enter' && !e.isComposing && t instanceof HTMLInputElement && !['checkbox', 'radio', 'button', 'color'].includes(t.type) && !t.closest('.palette')) {
+      const tg = e.target;
+      if (e.key === 'Enter' && !e.isComposing && tg instanceof HTMLInputElement && !['checkbox', 'radio', 'button', 'color'].includes(tg.type) && !tg.closest('.palette')) {
         const primary = dlg.querySelector('.dialog-actions .btn.primary');
         if (primary) {
           e.preventDefault();
@@ -81,7 +82,7 @@ export function openDialog({ title, body, actions = [], size = 'md', className, 
   });
 }
 
-export async function confirmDialog(title, message, { confirm = 'OK', cancel = 'Cancel', danger = false } = {}) {
+export async function confirmDialog(title, message, { confirm = t('OK'), cancel = t('Cancel'), danger = false } = {}) {
   const r = await openDialog({
     title,
     body: h('p.dialog-text', message),
@@ -97,18 +98,18 @@ export async function confirmDialog(title, message, { confirm = 'OK', cancel = '
 /** Three-way choice used for unsaved changes. Returns 'save' | 'discard' | null. */
 export function unsavedDialog(name) {
   return openDialog({
-    title: 'Save changes?',
-    body: h('p.dialog-text', `"${name}" has changes that are not saved.`),
+    title: t('Save changes?'),
+    body: h('p.dialog-text', t('"{name}" has changes that are not saved.', { name })),
     size: 'sm',
     actions: [
-      { label: 'Cancel', value: null },
-      { label: "Don't save", danger: true, value: 'discard' },
-      { label: 'Save', primary: true, value: 'save' },
+      { label: t('Cancel'), value: null },
+      { label: t("Don't save"), danger: true, value: 'discard' },
+      { label: t('Save'), primary: true, value: 'save' },
     ],
   });
 }
 
-export async function promptDialog(title, label, value = '', { placeholder = '', okLabel = 'OK', validate } = {}) {
+export async function promptDialog(title, label, value = '', { placeholder = '', okLabel = t('OK'), validate } = {}) {
   const input = h('input.input', { type: 'text', value, placeholder, 'aria-label': label, spellcheck: 'false' });
   const err = h('p.field-error', { role: 'alert' });
   const form = h('form.field', { onSubmit: (e) => e.preventDefault() }, h('label.field-label', label), input, err);
@@ -119,7 +120,7 @@ export async function promptDialog(title, label, value = '', { placeholder = '',
     size: 'sm',
     initialFocus: 'input',
     actions: [
-      { label: 'Cancel', value: null },
+      { label: t('Cancel'), value: null },
       {
         label: okLabel,
         primary: true,
@@ -168,7 +169,7 @@ export function toast(message, { kind = 'info', timeout = 3200, action } = {}) {
     `div.toast.${kind}`,
     h('span.toast-msg', message),
     action ? h('button.btn.sm.ghost', { type: 'button', onClick: () => (action.run(), el.remove()) }, action.label) : null,
-    h('button.icon-btn.sm', { type: 'button', 'aria-label': 'Dismiss', onClick: () => el.remove() }, icon('x', 14)),
+    h('button.icon-btn.sm', { type: 'button', 'aria-label': t('Dismiss'), onClick: () => el.remove() }, icon('x', 14)),
   );
   toastRegion().append(el);
   if (timeout) setTimeout(() => el.remove(), timeout);

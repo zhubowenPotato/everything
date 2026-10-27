@@ -9,6 +9,7 @@ import { showMenu } from './menu.js';
 import { RIBBON } from './ribbon-def.js';
 import { buildCombo } from './combos.js';
 import { roving } from './roving.js';
+import { t } from '../i18n/index.js';
 
 const SHORTCUTS = { UNDO: 'Ctrl+Z', REDO: 'Ctrl+Y', COPYCLIP: 'Ctrl+C', CUTCLIP: 'Ctrl+X', PASTECLIP: 'Ctrl+V', SELECTALL: 'Ctrl+A', PROPERTIES: 'Ctrl+1', SAVE: 'Ctrl+S', OPEN: 'Ctrl+O', NEW: 'Ctrl+N', PLOT: 'Ctrl+P', COPYBASE: 'Ctrl+Shift+C' };
 
@@ -16,7 +17,7 @@ export function commandTip(def, label) {
   const alias = def.aliases?.find((a) => a.length <= 4);
   return {
     'data-tip': label || def.label,
-    'data-tip-desc': `Command: ${def.name}${alias ? ` (${alias})` : ''}`,
+    'data-tip-desc': `${t('Command')}: ${def.name}${alias ? ` (${alias})` : ''}`,
     'data-tip-keys': SHORTCUTS[def.name] || null,
   };
 }
@@ -30,11 +31,11 @@ export class Ribbon {
     this.choice = loadChoices();
     this.toggles = [];
     this.combos = [];
-    this.tablist = h('div.rb-tabs', { role: 'tablist', 'aria-label': 'Ribbon' });
+    this.tablist = h('div.rb-tabs', { role: 'tablist', 'aria-label': t('Ribbon') });
     this.body = h('div.rb-body', { role: 'tabpanel', id: 'ribbon-panel' });
     this.collapseBtn = h(
       'button.icon-btn.rb-collapse',
-      { type: 'button', 'aria-label': 'Minimize the ribbon', 'aria-expanded': 'true', 'data-tip': 'Minimize the ribbon', onClick: () => this.setCollapsed(!this.collapsed) },
+      { type: 'button', 'aria-label': t('Minimize the ribbon'), 'aria-expanded': 'true', 'data-tip': t('Minimize the ribbon'), onClick: () => this.setCollapsed(!this.collapsed) },
       icon('chevron-up', 16),
     );
     this.el = h('div.ribbon', this.tablistWrap(), this.body);
@@ -130,8 +131,8 @@ export class Ribbon {
     this.el.classList.toggle('collapsed', c);
     this.el.classList.remove('flyout-open');
     this.collapseBtn.setAttribute('aria-expanded', String(!c));
-    this.collapseBtn.setAttribute('aria-label', c ? 'Expand the ribbon' : 'Minimize the ribbon');
-    this.collapseBtn.dataset.tip = c ? 'Expand the ribbon' : 'Minimize the ribbon';
+    this.collapseBtn.setAttribute('aria-label', c ? t('Expand the ribbon') : t('Minimize the ribbon'));
+    this.collapseBtn.dataset.tip = c ? t('Expand the ribbon') : t('Minimize the ribbon');
     clear(this.collapseBtn).append(icon(c ? 'chevron-down' : 'chevron-up', 16));
     this.app.layoutChanged?.();
   }
@@ -223,7 +224,7 @@ export class Ribbon {
           {
             type: 'button',
             'aria-haspopup': 'menu',
-            onClick: (e) => showMenu(e.currentTarget, p.more.map((m) => this.menuItem(m)), { label: `${p.title} more commands` }),
+            onClick: (e) => showMenu(e.currentTarget, p.more.map((m) => this.menuItem(m)), { label: t('{title} more commands', { title: p.title }) }),
           },
           p.title,
           icon('chevron-down', 12),
@@ -267,7 +268,7 @@ export class Ribbon {
           },
         };
       }),
-      { label: `${it.label || this.def(it.cmd)?.label} options` },
+      { label: t('{label} options', { label: it.label || this.def(it.cmd)?.label }) },
     );
   }
 
@@ -293,7 +294,7 @@ export class Ribbon {
       wrap.classList.add('split');
       const arrow = h(
         'button.rb-lg-arrow',
-        { type: 'button', 'aria-label': `${label} options`, 'aria-haspopup': 'menu', onClick: (e) => this.variantMenu(it, e.currentTarget, render) },
+        { type: 'button', 'aria-label': t('{label} options', { label }), 'aria-haspopup': 'menu', onClick: (e) => this.variantMenu(it, e.currentTarget, render) },
         icon('chevron-down', 12),
       );
       wrap.append(main, arrow);
@@ -322,7 +323,7 @@ export class Ribbon {
         wrap.append(
           h(
             'button.rb-sm-arrow',
-            { type: 'button', 'aria-label': `${label} options`, 'aria-haspopup': 'menu', onClick: (e) => this.variantMenu(it, e.currentTarget, render) },
+            { type: 'button', 'aria-label': t('{label} options', { label }), 'aria-haspopup': 'menu', onClick: (e) => this.variantMenu(it, e.currentTarget, render) },
             icon('chevron-down', 11),
           ),
         );
@@ -348,11 +349,11 @@ export class Ribbon {
     const opt = (value, label, ic) =>
       h(
         'button.seg-btn',
-        { type: 'button', role: 'radio', 'aria-checked': String(cur === value), 'data-tip': `${label} theme`, onClick: () => this.app.setTheme(value) },
+        { type: 'button', role: 'radio', 'aria-checked': String(cur === value), 'data-theme': value, 'data-tip': t('{label} theme', { label }), onClick: () => this.app.setTheme(value) },
         icon(ic, 16),
         h('span', label),
       );
-    const group = h('div.seg', { role: 'radiogroup', 'aria-label': 'Theme' }, opt('system', 'System', 'monitor'), opt('light', 'Light', 'sun'), opt('dark', 'Dark', 'moon'));
+    const group = h('div.seg', { role: 'radiogroup', 'aria-label': t('Theme') }, opt('system', t('System'), 'monitor'), opt('light', t('Light'), 'sun'), opt('dark', t('Dark'), 'moon'));
     this.syncTheme = roving(group, '.seg-btn');
     return h('div.rb-theme', group);
   }
@@ -363,8 +364,7 @@ export class Ribbon {
     for (const t of this.toggles) t.btn.setAttribute('aria-pressed', String(!!s[t.setting]));
     for (const c of this.combos) c.refresh();
     for (const b of this.body.querySelectorAll('.rb-theme .seg-btn')) {
-      const label = b.textContent.toLowerCase();
-      b.setAttribute('aria-checked', String(label === this.app.themePref));
+      b.setAttribute('aria-checked', String(b.dataset.theme === this.app.themePref));
     }
     this.syncTheme?.();
   }

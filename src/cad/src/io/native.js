@@ -2,6 +2,8 @@
  * Native drawing files (.cad): the drawing as JSON, gzip-compressed when the
  * platform supports it. Reading accepts both compressed and plain JSON.
  */
+import { t } from '../i18n/index.js';
+
 export const NATIVE_EXT = '.cad';
 export const FORMAT = 'cad-drawing';
 
@@ -18,12 +20,12 @@ export async function encodeDrawing(drawing) {
 export async function decodeDrawing(buffer) {
   let bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
-    if (typeof DecompressionStream === 'undefined') throw new Error('This browser cannot read compressed drawings.');
+    if (typeof DecompressionStream === 'undefined') throw new Error(t('This browser cannot read compressed drawings.'));
     const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
     bytes = new Uint8Array(await new Response(stream).arrayBuffer());
   }
   const data = JSON.parse(new TextDecoder().decode(bytes));
-  if (!data || (data.format && data.format !== FORMAT) || !Array.isArray(data.entities)) throw new Error('This is not a drawing file.');
+  if (!data || (data.format && data.format !== FORMAT) || !Array.isArray(data.entities)) throw new Error(t('This is not a drawing file.'));
   return validate(data);
 }
 

@@ -15,6 +15,7 @@ import { findSnap, DEFAULT_SNAPS } from './snap.js';
 import { pickEntity, entityCrossesRect } from './pick.js';
 import { gripsOf, applyGrip } from './grips.js';
 import { parsePointInput, matchOption, parseNumber } from './input.js';
+import { t } from '../i18n/index.js';
 import { baseProps } from '../core/schema.js';
 import { formatLinear, formatAngle, parseAngle } from '../core/units.js';
 import { transformEntity } from '../core/geom/index.js';
@@ -133,11 +134,11 @@ export class Editor {
   async run(name, args) {
     const def = typeof name === 'object' ? name : this.find(name);
     if (!def) {
-      this.ui.log(`Unknown command "${name}". Type a command name or press F1 for help.`, 'error');
+      this.ui.log(t('Unknown command "{name}". Type a command name or press F1 for help.', { name }), 'error');
       return;
     }
     if (def.needsDoc !== false && !this.doc) {
-      this.ui.log(`${def.label || def.name}: open or create a drawing first.`, 'muted');
+      this.ui.log(t('{label}: open or create a drawing first.', { label: def.label || def.name }), 'muted');
       return;
     }
     // File and panel commands never hold the command slot (a file picker
@@ -149,7 +150,7 @@ export class Editor {
       } catch (err) {
         if (!(err instanceof CancelError)) {
           console.error(err);
-          this.ui.log(`${def.label || def.name}: ${err.message || err}`, 'error');
+          this.ui.log(t('{label}: {error}', { label: def.label || def.name, error: err.message || err }), 'error');
         }
       }
       return;
@@ -172,8 +173,8 @@ export class Editor {
     } catch (err) {
       if (!(err instanceof CancelError)) {
         console.error(err);
-        this.ui.log(`${def.label || def.name}: ${err.message || err}`, 'error');
-      } else this.ui.log('Cancelled', 'muted');
+        this.ui.log(t('{label}: {error}', { label: def.label || def.name, error: err.message || err }), 'error');
+      } else this.ui.log(t('Cancelled'), 'muted');
     } finally {
       if (this.active === active) {
         drawing.mergeSince(Math.max(0, mark - (drawing.shifted - shifted)), def.label || def.name);
@@ -336,7 +337,7 @@ export class Editor {
     if (r === null) return def ?? null;
     if (typeof r === 'number' || r?.option) return r;
     if (opts.base) return Math.hypot(r.x - opts.base.x, r.y - opts.base.y);
-    const q = await this._ask('distance', 'Second point', { ...opts, base: r });
+    const q = await this._ask('distance', t('Second point'), { ...opts, base: r });
     if (q === null) return def ?? null;
     if (typeof q === 'number' || q?.option) return q;
     return Math.hypot(q.x - r.x, q.y - r.y);
@@ -350,7 +351,7 @@ export class Editor {
     if (r === null) return def ?? null;
     if (typeof r === 'number' || r?.option) return r;
     if (opts.base) return Math.atan2(r.y - opts.base.y, r.x - opts.base.x);
-    const q = await this._ask('angle', 'Second point', { ...opts, base: r });
+    const q = await this._ask('angle', t('Second point'), { ...opts, base: r });
     if (q === null) return def ?? null;
     if (typeof q === 'number' || q?.option) return q;
     return Math.atan2(q.y - r.y, q.x - r.x);
@@ -372,7 +373,7 @@ export class Editor {
       if (r === null) return def ?? null;
       if (r?.option) return r;
       if (Number.isFinite(r) && (opts.min === undefined || r >= opts.min) && (opts.max === undefined || r <= opts.max)) return r;
-      this.ui.log(opts.min !== undefined ? `Enter a number of at least ${opts.min}.` : 'Enter a number.', 'error');
+      this.ui.log(opts.min !== undefined ? t('Enter a number of at least {min}.', { min: opts.min }) : t('Enter a number.'), 'error');
     }
   }
 
@@ -393,7 +394,7 @@ export class Editor {
    * opts.fresh), otherwise lets the user build a selection and press Enter.
    * Returns an array of ids (possibly empty).
    */
-  async getSelection(prompt = 'Select objects', opts = {}) {
+  async getSelection(prompt = t('Select objects'), opts = {}) {
     if (!opts.fresh && this.selection.size) {
       const ids = [...this.selection].filter((id) => this._editable(id) && (!opts.filter || opts.filter(this.drawing.get(id))));
       if (ids.length) {
@@ -412,7 +413,7 @@ export class Editor {
       { key: 'A', label: 'Add', value: 'add' },
     ];
     for (;;) {
-      const r = await this._ask('select', `${prompt}${this.selection.size ? ` (${this.selection.size} found)` : ''}`, { ...opts, options });
+      const r = await this._ask('select', this.selection.size ? t('{prompt} ({n} found)', { prompt, n: this.selection.size }) : prompt, { ...opts, options });
       if (r === null) break;
       if (r.option === 'all') this.addToSelection(this._allEditable(opts.filter));
       else if (r.option === 'last') {
@@ -472,31 +473,31 @@ export class Editor {
 
   /** Handle text submitted from the command line (Enter or Space). */
   submit(text) {
-    const t = text.trim();
+    const txt = text.trim();
     const r = this.request;
     if (!r) {
-      if (!t) {
+      if (!txt) {
         if (this.lastCommand) this.run(this.lastCommand);
         return;
       }
-      this.run(t);
+      this.run(txt);
       return;
     }
-    if (!t) {
+    if (!txt) {
       // Enter with nothing typed.
       if (r.kind === 'point' && this.angleLock !== null) return;
       this._resolve(null);
       return;
     }
     // Snap overrides typed at a point prompt (END, MID, CEN, ...).
-    const ov = SNAP_KEYWORDS[t.toUpperCase()];
-    if (ov && (r.kind === 'point' || r.kind === 'distance' || r.kind === 'angle') && !matchOption(t, r.options)) {
+    const ov = SNAP_KEYWORDS[txt.toUpperCase()];
+    if (ov && (r.kind === 'point' || r.kind === 'distance' || r.kind === 'angle') && !matchOption(txt, r.options)) {
       this.setSnapOverride(ov);
       return;
     }
-    const opt = matchOption(t, r.options);
+    const opt = matchOption(txt, r.options);
     if (opt) {
-      this.ui.log(`${r.prompt}: ${t}`, 'input');
+      this.ui.log(t('{prompt}: {input}', { prompt: r.prompt, input: txt }), 'input');
       this._resolve({ option: opt });
       return;
     }
@@ -506,21 +507,21 @@ export class Editor {
       case 'distance':
       case 'angle': {
         if (r.kind === 'angle') {
-          const a = parseAngle(t, header);
+          const a = parseAngle(txt, header);
           if (Number.isFinite(a)) {
-            this.ui.log(`${r.prompt}: ${t}`, 'input');
+            this.ui.log(t('{prompt}: {input}', { prompt: r.prompt, input: txt }), 'input');
             return this._resolve(a);
           }
         }
-        const p = parsePointInput(t, { last: r.opts.base || this.lastPoint, header });
+        const p = parsePointInput(txt, { last: r.opts.base || this.lastPoint, header });
         if (p.kind === 'point') {
-          this.ui.log(`${r.prompt}: ${t}`, 'input');
+          this.ui.log(t('{prompt}: {input}', { prompt: r.prompt, input: txt }), 'input');
           this.lastPoint = { x: p.x, y: p.y };
           return this._resolve({ x: p.x, y: p.y });
         }
         if (p.kind === 'distance') {
           if (r.kind === 'distance') {
-            this.ui.log(`${r.prompt}: ${t}`, 'input');
+            this.ui.log(t('{prompt}: {input}', { prompt: r.prompt, input: txt }), 'input');
             return this._resolve(p.d);
           }
           const base = r.opts.base;
@@ -529,7 +530,7 @@ export class Editor {
             const dir = this._direction(base);
             if (dir) {
               const q = { x: base.x + dir.x * p.d, y: base.y + dir.y * p.d };
-              this.ui.log(`${r.prompt}: ${t}`, 'input');
+              this.ui.log(t('{prompt}: {input}', { prompt: r.prompt, input: txt }), 'input');
               this.lastPoint = q;
               return this._resolve(q);
             }
@@ -537,27 +538,27 @@ export class Editor {
         }
         if (p.kind === 'angle' && r.kind === 'point' && r.opts.base) {
           this.angleLock = p.a;
-          this.ui.log(`Angle locked at ${formatAngle(p.a, header)}`, 'muted');
+          this.ui.log(t('Angle locked at {angle}', { angle: formatAngle(p.a, header) }), 'muted');
           this._updateCursor(this.cursor.sx, this.cursor.sy, true);
           return;
         }
-        this.ui.log('Invalid point. Use x,y or @dx,dy or @distance<angle.', 'error');
+        this.ui.log(t('Invalid point. Use x,y or @dx,dy or @distance<angle.'), 'error');
         return;
       }
       case 'number': {
-        const v = parseNumber(t, header);
-        this.ui.log(`${r.prompt}: ${t}`, 'input');
+        const v = parseNumber(txt, header);
+        this.ui.log(t('{prompt}: {input}', { prompt: r.prompt, input: txt }), 'input');
         return this._resolve(Number.isFinite(v) ? v : NaN);
       }
       case 'string':
-        this.ui.log(`${r.prompt}: ${t}`, 'input');
+        this.ui.log(t('{prompt}: {input}', { prompt: r.prompt, input: txt }), 'input');
         return this._resolve(text);
       case 'keyword':
-        this.ui.log(`Choose one of: ${r.options.map((o) => o.label).join(', ')}`, 'error');
+        this.ui.log(t('Choose one of: {options}', { options: r.options.map((o) => o.label).join(', ') }), 'error');
         return;
       case 'select':
       case 'entity':
-        this.ui.log('Select objects in the drawing, or press Enter to finish.', 'error');
+        this.ui.log(t('Select objects in the drawing, or press Enter to finish.'), 'error');
         return;
     }
   }
@@ -937,9 +938,9 @@ export class Editor {
           fx = Math.round(fx / g) * g;
           fy = Math.round(fy / g) * g;
         }
-        const t = this._track(base, fx, fy);
-        fx = t.x;
-        fy = t.y;
+        const tr = this._track(base, fx, fy);
+        fx = tr.x;
+        fy = tr.y;
       }
     } else {
       this._idleHover(w.x, w.y, sx, sy);
@@ -973,9 +974,9 @@ export class Editor {
       if (this.angleLock !== null) {
         const ux = Math.cos(this.angleLock),
           uy = Math.sin(this.angleLock);
-        const t = dx * ux + dy * uy;
+        const proj = dx * ux + dy * uy;
         this._trackLine(base, ux, uy);
-        return { x: base.x + ux * t, y: base.y + uy * t };
+        return { x: base.x + ux * proj, y: base.y + uy * proj };
       }
       if (st.ortho) {
         if (Math.abs(dx) >= Math.abs(dy)) return { x, y: base.y };
@@ -988,9 +989,9 @@ export class Editor {
         const a = k * inc;
         const ux = Math.cos(a),
           uy = Math.sin(a);
-        const t = dx * ux + dy * uy;
+        const proj = dx * ux + dy * uy;
         const off = Math.abs(-uy * dx + ux * dy) * cam.scale;
-        if (t > 0 && off < tolPx) best = { x: base.x + ux * t, y: base.y + uy * t, line: [base, ux, uy], angle: a, dist: t };
+        if (proj > 0 && off < tolPx) best = { x: base.x + ux * proj, y: base.y + uy * proj, line: [base, ux, uy], angle: a, dist: proj };
       }
     }
     // Object snap tracking: align with acquired points horizontally or vertically.
@@ -1032,16 +1033,16 @@ export class Editor {
       }
       if (near.length && !best) {
         const l = near.sort((a, b) => a.off - b.off)[0];
-        const t = (x - l.p.x) * l.ux + (y - l.p.y) * l.uy;
-        const q = { x: l.p.x + l.ux * t, y: l.p.y + l.uy * t };
+        const proj = (x - l.p.x) * l.ux + (y - l.p.y) * l.uy;
+        const q = { x: l.p.x + l.ux * proj, y: l.p.y + l.uy * proj };
         this._trackLine(l.p, l.ux, l.uy, q);
-        this.trackLabel = `Tracking: ${formatLinear(Math.abs(t), this.header)}`;
+        this.trackLabel = t('Tracking: {distance}', { distance: formatLinear(Math.abs(proj), this.header) });
         return q;
       }
     }
     if (best) {
       this._trackLine(best.line[0], best.line[1], best.line[2]);
-      this.trackLabel = `Polar: ${formatLinear(best.dist, this.header)} < ${formatAngle(norm(best.angle), this.header)}`;
+      this.trackLabel = t('Polar: {distance} < {angle}', { distance: formatLinear(best.dist, this.header), angle: formatAngle(norm(best.angle), this.header) });
       return { x: best.x, y: best.y };
     }
     this.trackLabel = null;
@@ -1058,7 +1059,7 @@ export class Editor {
   /** Snap to one mode for the next point only. */
   setSnapOverride(mode) {
     this.snapOverride = mode;
-    this.ui.log(`Snap to ${SNAP_LABELS[mode] ?? mode} for the next point`, 'muted');
+    this.ui.log(t('Snap to {mode} for the next point', { mode: SNAP_LABELS[mode] ?? mode }), 'muted');
     this._updateCursor(this.cursor.sx, this.cursor.sy);
   }
 
@@ -1157,7 +1158,7 @@ export class Editor {
     // Releasing after a mouse drag places the grip; a click (or a tap) waits for a second one.
     const drag = !!p && p.type !== 'touch';
     if (drag) p.gripDrag = true;
-    this.run({ name: 'GRIPEDIT', label: 'Grip edit', noRepeat: true, run: (ed) => gripEdit(ed, g, drag) });
+    this.run({ name: 'GRIPEDIT', label: t('Grip edit'), noRepeat: true, run: (ed) => gripEdit(ed, g, drag) });
   }
 
   // View ----------------------------------------------------------------------
@@ -1223,7 +1224,7 @@ export class Editor {
     };
     if (this.snap) {
       const s = cam.toScreen(this.snap.x, this.snap.y);
-      const label = this.snap.tracked ? 'Intersection' : SNAP_LABELS[this.snap.mode];
+      const label = this.snap.tracked ? t('Intersection') : SNAP_LABELS[this.snap.mode];
       state.snap = { sx: s.x, sy: s.y, mode: this.snap.mode, label };
     }
     if (!this.active && this.grips) {
@@ -1253,7 +1254,7 @@ export class Editor {
     if (st.dyn && c.inside && r && !touch) {
       const lines = [];
       const typed = this.ui.input();
-      lines.push(typed ? `${r.prompt}: ${typed}` : r.prompt);
+      lines.push(typed ? t('{prompt}: {input}', { prompt: r.prompt, input: typed }) : r.prompt);
       if (this.trackLabel && wantsPoint) lines.push(this.trackLabel);
       else if (wantsPoint && !r.opts.base) lines.push(`${formatLinear(c.fx, this.header)}, ${formatLinear(c.fy, this.header)}`);
       state.tooltip = { sx: fs.x + 22, sy: fs.y + 30, lines };
@@ -1269,8 +1270,8 @@ export class Editor {
     const r = this.request;
     const items = [];
     if (r) {
-      items.push({ label: 'Enter', shortcut: 'Enter', action: () => this.submit('') });
-      items.push({ label: 'Cancel', shortcut: 'Esc', action: () => this.cancel() });
+      items.push({ label: t('Enter'), shortcut: 'Enter', action: () => this.submit('') });
+      items.push({ label: t('Cancel'), shortcut: 'Esc', action: () => this.cancel() });
       if (r.options.length) {
         items.push({ separator: true });
         for (const o of r.options) items.push({ label: o.label, action: () => this._resolve({ option: o.value ?? o.key }) });
@@ -1278,12 +1279,12 @@ export class Editor {
       items.push({ separator: true });
       if (r.kind === 'point' || r.kind === 'distance' || r.kind === 'angle') {
         items.push({
-          label: 'Snap overrides',
+          label: t('Snap overrides'),
           icon: 'osnap',
           submenu: Object.entries(SNAP_LABELS).map(([mode, label]) => ({ label, icon: `snap-${mode}`, action: () => this.setSnapOverride(mode) })),
         });
       }
-      items.push({ label: 'Zoom extents', icon: 'zoom-extents', action: () => this.zoomExtents() });
+      items.push({ label: t('Zoom extents'), icon: 'zoom-extents', action: () => this.zoomExtents() });
     } else {
       this.ui.contextMenu(x, y, null);
       return;
@@ -1296,18 +1297,18 @@ export class Editor {
 const SNAP_KEYWORDS = { END: 'end', MID: 'mid', CEN: 'cen', GCE: 'gcen', NOD: 'node', QUA: 'quad', INT: 'int', EXT: 'ext', INS: 'ins', PER: 'per', TAN: 'tan', NEA: 'nea' };
 
 const SNAP_LABELS = {
-  end: 'Endpoint',
-  mid: 'Midpoint',
-  cen: 'Center',
-  gcen: 'Geometric center',
-  node: 'Node',
-  quad: 'Quadrant',
-  int: 'Intersection',
-  ext: 'Extension',
-  ins: 'Insertion',
-  per: 'Perpendicular',
-  tan: 'Tangent',
-  nea: 'Nearest',
+  end: t('Endpoint'),
+  mid: t('Midpoint'),
+  cen: t('Center'),
+  gcen: t('Geometric center'),
+  node: t('Node'),
+  quad: t('Quadrant'),
+  int: t('Intersection'),
+  ext: t('Extension'),
+  ins: t('Insertion'),
+  per: t('Perpendicular'),
+  tan: t('Tangent'),
+  nea: t('Nearest'),
 };
 
 function norm(a) {
@@ -1325,8 +1326,8 @@ function dist(pts) {
 function lineInt(a, b) {
   const den = a.ux * b.uy - a.uy * b.ux;
   if (Math.abs(den) < 1e-9) return null;
-  const t = ((b.p.x - a.p.x) * b.uy - (b.p.y - a.p.y) * b.ux) / den;
-  return { x: a.p.x + a.ux * t, y: a.p.y + a.uy * t };
+  const u = ((b.p.x - a.p.x) * b.uy - (b.p.y - a.p.y) * b.ux) / den;
+  return { x: a.p.x + a.ux * u, y: a.p.y + a.uy * u };
 }
 
 /**
@@ -1348,13 +1349,13 @@ async function gripEdit(ed, grip, fromPointer) {
   try {
     for (;;) {
       const m = modes[mode];
-      const label = { stretch: 'Stretch to point', move: 'Move to point', rotate: 'Rotation angle', scale: 'Scale factor', mirror: 'Second point of mirror line' }[m];
+      const label = { stretch: t('Stretch to point'), move: t('Move to point'), rotate: t('Rotation angle'), scale: t('Scale factor'), mirror: t('Second point of mirror line') }[m];
       const matrixFor = (p) => gripMatrix(m, base, p);
       if (m === 'stretch') {
         const ent = ed.drawing.get(grip.id);
         ed.renderer.setHidden(new Set([grip.id]));
         ed.renderer.setDragMatrix(null);
-        const r = await ed.getPoint(`${label} (Space for next mode)`, {
+        const r = await ed.getPoint(t('{label} (Space for next mode)', { label }), {
           base,
           options,
           drag: fromPointer,
@@ -1367,7 +1368,7 @@ async function gripEdit(ed, grip, fromPointer) {
         }
         if (r.option === 'exit') return;
         if (r.option === 'base') {
-          const b = await ed.getPoint('Base point');
+          const b = await ed.getPoint(t('Base point'));
           if (b && !b.option) base = b;
           continue;
         }
@@ -1376,13 +1377,13 @@ async function gripEdit(ed, grip, fromPointer) {
           continue;
         }
         const next = applyGrip(ent, grip.i, r.x, r.y);
-        ed.commit('Stretch', () => (copy ? ed.drawing.add({ ...next, id: undefined }) : ed.drawing.replace(grip.id, next)));
+        ed.commit(t('Stretch'), () => (copy ? ed.drawing.add({ ...next, id: undefined }) : ed.drawing.replace(grip.id, next)));
         if (!copy) return;
         continue;
       }
       ed.renderer.setHidden(new Set());
       const ask = { base, options, onMove: (p) => ed.renderer.setDragMatrix(matrixFor(p)) };
-      const prompt = `${label} (Space for next mode)`;
+      const prompt = t('{label} (Space for next mode)', { label });
       let r;
       if (m === 'rotate') {
         r = await ed.getAngle(prompt, ask);
@@ -1397,7 +1398,7 @@ async function gripEdit(ed, grip, fromPointer) {
       }
       if (r.option === 'exit') return;
       if (r.option === 'base') {
-        const b = await ed.getPoint('Base point');
+        const b = await ed.getPoint(t('Base point'));
         if (b && !b.option) base = b;
         continue;
       }
@@ -1406,13 +1407,13 @@ async function gripEdit(ed, grip, fromPointer) {
         continue;
       }
       const mtx = matrixFor(r);
-      ed.commit(m[0].toUpperCase() + m.slice(1), () => {
+      ed.commit(t(m[0].toUpperCase() + m.slice(1)), () => {
         for (const id of ids) {
           const e = ed.drawing.get(id);
           if (!e) continue;
-          const t = transformEntity(e, mtx);
-          if (copy) ed.drawing.add({ ...t, id: undefined });
-          else ed.drawing.replace(id, t);
+          const te = transformEntity(e, mtx);
+          if (copy) ed.drawing.add({ ...te, id: undefined });
+          else ed.drawing.replace(id, te);
         }
       });
       if (!copy) return;

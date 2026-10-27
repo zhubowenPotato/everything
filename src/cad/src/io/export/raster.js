@@ -18,6 +18,7 @@ import {
   parseBackground,
   plotColor,
 } from './plot.js';
+import { t } from '../../i18n/index.js';
 
 const DEFAULT_STYLE = { rgb: [0, 0, 0], aci7: true, lw: -1, pattern: [], alpha: 1 };
 /** Segments per canvas path before it is stroked and a new one started. */
@@ -189,8 +190,8 @@ export async function exportPng(items, settings = {}) {
     canvas.height = height;
     renderToCanvas(canvas.getContext('2d'), items, opts);
     return new Promise((resolve, reject) => {
-      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('PNG encoding failed'))), 'image/png');
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error(t('PNG encoding failed')))), 'image/png');
     });
   }
-  throw new Error('No canvas available for PNG export');
+  throw new Error(t('No canvas available for PNG export'));
 }

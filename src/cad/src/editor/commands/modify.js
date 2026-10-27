@@ -4,6 +4,7 @@
  * match properties and draw order.
  */
 import { opts } from '../input.js';
+import { t } from '../../i18n/index.js';
 import {
   transformEntity,
   offsetEntity,
@@ -33,8 +34,8 @@ const transformAll = (ed, ids, m, copy, label) =>
     for (const id of ids) {
       const e = ed.drawing.get(id);
       if (!e) continue;
-      const t = transformEntity(e, m);
-      out.push(copy ? ed.drawing.add(fresh(t)).id : ed.drawing.replace(id, t).id);
+      const te = transformEntity(e, m);
+      out.push(copy ? ed.drawing.add(fresh(te)).id : ed.drawing.replace(id, te).id);
     }
     return out;
   });
@@ -46,42 +47,42 @@ function showSelection(ed, ids) {
 export const ERASE = {
   name: 'ERASE',
   aliases: ['E', 'DELETE'],
-  label: 'Erase',
+  label: t('Erase'),
   icon: 'erase',
   async run(ed) {
     const ids = await ed.getSelection();
     if (!ids.length) return;
-    ed.commit('Erase', () => ids.forEach((id) => ed.drawing.remove(id)));
+    ed.commit(t('Erase'), () => ids.forEach((id) => ed.drawing.remove(id)));
     ed.clearSelection();
-    ed.ui.log(`${ids.length} object${ids.length === 1 ? '' : 's'} erased`, 'muted');
+    ed.ui.log(t('{n} object{s} erased', { n: ids.length, s: ids.length === 1 ? '' : 's' }), 'muted');
   },
 };
 
 export const MOVE = {
   name: 'MOVE',
   aliases: ['M'],
-  label: 'Move',
+  label: t('Move'),
   icon: 'move',
   async run(ed) {
     const ids = await ed.getSelection();
     if (!ids.length) return;
     showSelection(ed, ids);
-    const base = await ed.getPoint('Base point', { options: opts('Displacement') });
+    const base = await ed.getPoint(t('Base point'), { options: opts('Displacement') });
     if (!base) return;
     if (base.option === 'displacement') {
-      const d = await ed.getPoint('Displacement (x,y)', {});
+      const d = await ed.getPoint(t('Displacement (x,y)'), {});
       if (!d || d.option) return;
-      transformAll(ed, ids, M.translate(d.x, d.y), false, 'Move');
+      transformAll(ed, ids, M.translate(d.x, d.y), false, t('Move'));
       ed.clearSelection();
       return;
     }
-    const to = await ed.getPoint('Second point', {
+    const to = await ed.getPoint(t('Second point'), {
       base,
       onMove: (p) => ed.renderer.setDragMatrix(M.translate(p.x - base.x, p.y - base.y)),
     });
     ed.renderer.setDragMatrix(null);
     if (!to || to.option) return;
-    transformAll(ed, ids, M.translate(to.x - base.x, to.y - base.y), false, 'Move');
+    transformAll(ed, ids, M.translate(to.x - base.x, to.y - base.y), false, t('Move'));
     ed.clearSelection();
   },
 };
@@ -89,16 +90,16 @@ export const MOVE = {
 export const COPY = {
   name: 'COPY',
   aliases: ['CO', 'CP'],
-  label: 'Copy',
+  label: t('Copy'),
   icon: 'copy',
   async run(ed) {
     const ids = await ed.getSelection();
     if (!ids.length) return;
     showSelection(ed, ids);
-    const base = await ed.getPoint('Base point');
+    const base = await ed.getPoint(t('Base point'));
     if (!base || base.option) return;
     for (;;) {
-      const to = await ed.getPoint('Second point (Enter to finish)', {
+      const to = await ed.getPoint(t('Second point (Enter to finish)'), {
         base,
         options: opts('Array'),
         onMove: (p) => ed.renderer.setDragMatrix(M.translate(p.x - base.x, p.y - base.y)),
@@ -106,20 +107,20 @@ export const COPY = {
       ed.renderer.setDragMatrix(null);
       if (!to) break;
       if (to.option === 'array') {
-        const n0 = await ed.getNumber('Number of items to array', { default: 3, min: 2, max: 10000 });
+        const n0 = await ed.getNumber(t('Number of items to array'), { default: 3, min: 2, max: 10000 });
         if (!Number.isFinite(n0)) continue;
         const n = Math.max(2, Math.round(n0));
-        const last = await ed.getPoint('Second point', {
+        const last = await ed.getPoint(t('Second point'), {
           base,
           onMove: (p) => ed.renderer.setDragMatrix(M.translate(p.x - base.x, p.y - base.y)),
         });
         if (!last || last.option) continue;
-        ed.commit('Copy', () => {
-          for (let i = 1; i < n; i++) transformAll(ed, ids, M.translate((last.x - base.x) * i, (last.y - base.y) * i), true, 'Copy');
+        ed.commit(t('Copy'), () => {
+          for (let i = 1; i < n; i++) transformAll(ed, ids, M.translate((last.x - base.x) * i, (last.y - base.y) * i), true, t('Copy'));
         });
         continue;
       }
-      transformAll(ed, ids, M.translate(to.x - base.x, to.y - base.y), true, 'Copy');
+      transformAll(ed, ids, M.translate(to.x - base.x, to.y - base.y), true, t('Copy'));
     }
     ed.clearSelection();
   },
@@ -128,17 +129,17 @@ export const COPY = {
 export const ROTATE = {
   name: 'ROTATE',
   aliases: ['RO'],
-  label: 'Rotate',
+  label: t('Rotate'),
   icon: 'rotate',
   async run(ed) {
     const ids = await ed.getSelection();
     if (!ids.length) return;
     showSelection(ed, ids);
-    const base = await ed.getPoint('Base point');
+    const base = await ed.getPoint(t('Base point'));
     if (!base || base.option) return;
     let copy = false;
     for (;;) {
-      const a = await ed.getAngle('Rotation angle', {
+      const a = await ed.getAngle(t('Rotation angle'), {
         base,
         default: ed.lastRotation ?? 0,
         options: opts('Copy', 'Reference'),
@@ -148,23 +149,23 @@ export const ROTATE = {
       if (a === null) return;
       if (a.option === 'copy') {
         copy = true;
-        ed.ui.log('Rotating a copy of the selected objects.', 'muted');
+        ed.ui.log(t('Rotating a copy of the selected objects.'), 'muted');
         continue;
       }
       if (a.option === 'reference') {
-        const r0 = await ed.getAngle('Reference angle', { default: 0 });
+        const r0 = await ed.getAngle(t('Reference angle'), { default: 0 });
         if (typeof r0 !== 'number') return;
-        const r1 = await ed.getAngle('New angle', {
+        const r1 = await ed.getAngle(t('New angle'), {
           base,
           onMove: (p) => ed.renderer.setDragMatrix(M.rotate(angleOf(base, p) - r0, base.x, base.y)),
         });
         ed.renderer.setDragMatrix(null);
         if (typeof r1 !== 'number') return;
-        transformAll(ed, ids, M.rotate(r1 - r0, base.x, base.y), copy, 'Rotate');
+        transformAll(ed, ids, M.rotate(r1 - r0, base.x, base.y), copy, t('Rotate'));
         break;
       }
       ed.lastRotation = a;
-      transformAll(ed, ids, M.rotate(a, base.x, base.y), copy, 'Rotate');
+      transformAll(ed, ids, M.rotate(a, base.x, base.y), copy, t('Rotate'));
       break;
     }
     ed.clearSelection();
@@ -174,17 +175,17 @@ export const ROTATE = {
 export const SCALE = {
   name: 'SCALE',
   aliases: ['SC'],
-  label: 'Scale',
+  label: t('Scale'),
   icon: 'scale',
   async run(ed) {
     const ids = await ed.getSelection();
     if (!ids.length) return;
     showSelection(ed, ids);
-    const base = await ed.getPoint('Base point');
+    const base = await ed.getPoint(t('Base point'));
     if (!base || base.option) return;
     let copy = false;
     for (;;) {
-      const k = await ed.getDistance('Scale factor', {
+      const k = await ed.getDistance(t('Scale factor'), {
         base,
         default: ed.lastScale ?? 1,
         options: opts('Copy', 'Reference'),
@@ -197,23 +198,23 @@ export const SCALE = {
         continue;
       }
       if (k.option === 'reference') {
-        const l0 = await ed.getDistance('Reference length', { default: 1 });
+        const l0 = await ed.getDistance(t('Reference length'), { default: 1 });
         if (typeof l0 !== 'number' || l0 <= 0) return;
-        const l1 = await ed.getDistance('New length', {
+        const l1 = await ed.getDistance(t('New length'), {
           base,
           onMove: (p) => ed.renderer.setDragMatrix(M.scale(Math.max(1e-9, dist(base, p) / l0), base.x, base.y)),
         });
         ed.renderer.setDragMatrix(null);
         if (typeof l1 !== 'number' || l1 <= 0) return;
-        transformAll(ed, ids, M.scale(l1 / l0, base.x, base.y), copy, 'Scale');
+        transformAll(ed, ids, M.scale(l1 / l0, base.x, base.y), copy, t('Scale'));
         break;
       }
       if (!(k > 0)) {
-        ed.ui.log('The scale factor must be greater than zero.', 'error');
+        ed.ui.log(t('The scale factor must be greater than zero.'), 'error');
         continue;
       }
       ed.lastScale = k;
-      transformAll(ed, ids, M.scale(k, base.x, base.y), copy, 'Scale');
+      transformAll(ed, ids, M.scale(k, base.x, base.y), copy, t('Scale'));
       break;
     }
     ed.clearSelection();
@@ -223,23 +224,23 @@ export const SCALE = {
 export const MIRROR = {
   name: 'MIRROR',
   aliases: ['MI'],
-  label: 'Mirror',
+  label: t('Mirror'),
   icon: 'mirror',
   async run(ed) {
     const ids = await ed.getSelection();
     if (!ids.length) return;
     showSelection(ed, ids);
-    const a = await ed.getPoint('First point of mirror line');
+    const a = await ed.getPoint(t('First point of mirror line'));
     if (!a || a.option) return;
-    const b = await ed.getPoint('Second point of mirror line', {
+    const b = await ed.getPoint(t('Second point of mirror line'), {
       base: a,
       onMove: (p) => ed.renderer.setDragMatrix(dist(a, p) > 1e-12 ? M.mirror(a, p) : null),
     });
     ed.renderer.setDragMatrix(null);
     if (!b || b.option || dist(a, b) < 1e-12) return;
-    const erase = await ed.getKeyword('Erase source objects?', opts('Yes', 'No'), 'no');
+    const erase = await ed.getKeyword(t('Erase source objects?'), opts('Yes', 'No'), 'no');
     if (erase === null) return;
-    transformAll(ed, ids, M.mirror(a, b), erase !== 'yes', 'Mirror');
+    transformAll(ed, ids, M.mirror(a, b), erase !== 'yes', t('Mirror'));
     ed.clearSelection();
   },
 };
@@ -247,27 +248,27 @@ export const MIRROR = {
 export const OFFSET = {
   name: 'OFFSET',
   aliases: ['O'],
-  label: 'Offset',
+  label: t('Offset'),
   icon: 'offset',
   async run(ed) {
     ed.clearSelection();
-    const d = await ed.getDistance('Offset distance', { default: ed.offsetDist ?? 'through', options: opts('Through') });
+    const d = await ed.getDistance(t('Offset distance'), { default: ed.offsetDist ?? 'through', options: opts('Through') });
     if (d === null) return;
     const through = d === 'through' || d.option === 'through';
     if (!through) {
       if (!(d > 0)) {
-        ed.ui.log('The offset distance must be greater than zero.', 'error');
+        ed.ui.log(t('The offset distance must be greater than zero.'), 'error');
         return;
       }
       ed.offsetDist = d;
     } else ed.offsetDist = 'through';
     const filter = (e) => ['line', 'xline', 'ray', 'circle', 'arc', 'ellipse', 'polyline', 'spline'].includes(e.type);
     for (;;) {
-      const pick = await ed.getEntity('Select object to offset (Enter to finish)', { filter });
+      const pick = await ed.getEntity(t('Select object to offset (Enter to finish)'), { filter });
       if (!pick || pick.option) return;
       ed.setSelection([pick.id]);
       const ent = pick.ent;
-      const side = await ed.getPoint(through ? 'Through point' : 'Point on side to offset', {
+      const side = await ed.getPoint(through ? t('Through point') : t('Point on side to offset'), {
         preview: (p) => {
           const dd = through ? distanceTo(ent, p) : d;
           if (!(dd > 0)) return [];
@@ -289,10 +290,10 @@ export const OFFSET = {
         r = null;
       }
       if (!r) {
-        ed.ui.log('That object cannot be offset by this distance.', 'error');
+        ed.ui.log(t('That object cannot be offset by this distance.'), 'error');
         continue;
       }
-      ed.commit('Offset', () => (Array.isArray(r) ? r : [r]).forEach((e) => ed.drawing.add(fresh(e))));
+      ed.commit(t('Offset'), () => (Array.isArray(r) ? r : [r]).forEach((e) => ed.drawing.add(fresh(e))));
     }
   },
 };
@@ -331,14 +332,14 @@ async function trimOrExtend(ed, extendFirst) {
   const filter = (e) => ['line', 'xline', 'ray', 'circle', 'arc', 'ellipse', 'polyline', 'spline'].includes(e.type);
   for (;;) {
     const verb = extendFirst ? 'extend' : 'trim';
-    const pick = await ed.getEntity(`Select object to ${verb} (Shift to ${extendFirst ? 'trim' : 'extend'}, Enter to finish)`, {
+    const pick = await ed.getEntity(t('Select object to {verb} (Shift to {other}, Enter to finish)', { verb: t(verb), other: t(extendFirst ? 'trim' : 'extend') }), {
       filter,
       options: [...opts('Edges', 'Undo'), { key: 'R', label: 'eRase', value: 'erase' }],
     });
     if (!pick) return;
     if (pick.option === 'edges') {
-      ed.ui.log('Select the cutting or boundary edges, then press Enter. Press Enter right away to use every object.', 'muted');
-      const ids = await ed.getSelection('Select edges', { fresh: true });
+      ed.ui.log(t('Select the cutting or boundary edges, then press Enter. Press Enter right away to use every object.'), 'muted');
+      const ids = await ed.getSelection(t('Select edges'), { fresh: true });
       edges = ids.length ? ids : null;
       ed.clearSelection();
       continue;
@@ -347,13 +348,13 @@ async function trimOrExtend(ed, extendFirst) {
       if (steps > 0) {
         ed.drawing.undo();
         steps--;
-      } else ed.ui.log('Nothing to undo in this command.', 'muted');
+      } else ed.ui.log(t('Nothing to undo in this command.'), 'muted');
       continue;
     }
     if (pick.option === 'erase') {
-      const e = await ed.getEntity('Select object to erase');
+      const e = await ed.getEntity(t('Select object to erase'));
       if (e && !e.option) {
-        ed.commit('Erase', () => ed.drawing.remove(e.id));
+        ed.commit(t('Erase'), () => ed.drawing.remove(e.id));
         steps++;
       }
       continue;
@@ -369,9 +370,9 @@ async function trimOrExtend(ed, extendFirst) {
       } catch {
         r = null;
       }
-      if (!r) ed.ui.log('No boundary in that direction.', 'error');
+      if (!r) ed.ui.log(t('No boundary in that direction.'), 'error');
       else {
-        ed.commit('Extend', () => ed.drawing.replace(pick.id, r));
+        ed.commit(t('Extend'), () => ed.drawing.replace(pick.id, r));
         steps++;
       }
     } else {
@@ -384,14 +385,14 @@ async function trimOrExtend(ed, extendFirst) {
         r = trimEntity(ent, prims, pick.x, pick.y);
       } catch (err) {
         console.warn(err);
-        ed.ui.log('That object could not be trimmed.', 'error');
+        ed.ui.log(t('That object could not be trimmed.'), 'error');
         continue;
       }
       if (!r) {
         // Nothing crosses it: trimming removes it entirely, as an eraser would.
-        ed.commit('Trim', () => ed.drawing.remove(pick.id));
+        ed.commit(t('Trim'), () => ed.drawing.remove(pick.id));
       } else {
-        ed.commit('Trim', () => {
+        ed.commit(t('Trim'), () => {
           if (r.remove !== false) ed.drawing.remove(pick.id);
           for (const e of r.add || []) ed.drawing.add(fresh({ ...ent, ...e, id: undefined }));
         });
@@ -401,8 +402,8 @@ async function trimOrExtend(ed, extendFirst) {
   }
 }
 
-export const TRIM = { name: 'TRIM', aliases: ['TR'], label: 'Trim', icon: 'trim', run: (ed) => trimOrExtend(ed, false) };
-export const EXTEND = { name: 'EXTEND', aliases: ['EX'], label: 'Extend', icon: 'extend', run: (ed) => trimOrExtend(ed, true) };
+export const TRIM = { name: 'TRIM', aliases: ['TR'], label: t('Trim'), icon: 'trim', run: (ed) => trimOrExtend(ed, false) };
+export const EXTEND = { name: 'EXTEND', aliases: ['EX'], label: t('Extend'), icon: 'extend', run: (ed) => trimOrExtend(ed, true) };
 
 async function filletOrChamfer(ed, isChamfer) {
   ed.clearSelection();
@@ -411,21 +412,21 @@ async function filletOrChamfer(ed, isChamfer) {
   let multiple = false;
   for (;;) {
     const r = isChamfer ? ed.chamferD ?? [0, 0] : ed.filletR ?? 0;
-    const desc = isChamfer ? `distances ${r[0]}, ${r[1]}` : `radius ${r}`;
-    const first = await ed.getEntity(`Select first object (current ${desc})`, {
+    const desc = isChamfer ? t('distances {a}, {b}', { a: r[0], b: r[1] }) : t('radius {v}', { v: r });
+    const first = await ed.getEntity(t('Select first object (current {desc})', { desc }), {
       filter,
       options: isChamfer ? opts('Distance', 'Polyline', 'Multiple') : opts('Radius', 'Polyline', 'Multiple'),
     });
     if (!first) return;
     if (first.option === 'radius') {
-      const v = await ed.getDistance('Fillet radius', { default: r });
+      const v = await ed.getDistance(t('Fillet radius'), { default: r });
       if (typeof v === 'number' && v >= 0) ed.filletR = v;
       continue;
     }
     if (first.option === 'distance') {
-      const d1 = await ed.getDistance('First chamfer distance', { default: r[0] });
+      const d1 = await ed.getDistance(t('First chamfer distance'), { default: r[0] });
       if (typeof d1 !== 'number') continue;
-      const d2 = await ed.getDistance('Second chamfer distance', { default: d1 });
+      const d2 = await ed.getDistance(t('Second chamfer distance'), { default: d1 });
       if (typeof d2 !== 'number') continue;
       ed.chamferD = [d1, d2];
       continue;
@@ -435,7 +436,7 @@ async function filletOrChamfer(ed, isChamfer) {
       continue;
     }
     if (first.option === 'polyline') {
-      const p = await ed.getEntity('Select 2D polyline', { filter: (e) => e.type === 'polyline' });
+      const p = await ed.getEntity(t('Select 2D polyline'), { filter: (e) => e.type === 'polyline' });
       if (!p || p.option) continue;
       let out = null;
       try {
@@ -443,12 +444,12 @@ async function filletOrChamfer(ed, isChamfer) {
       } catch {
         out = null;
       }
-      if (out) ed.commit(isChamfer ? 'Chamfer' : 'Fillet', () => ed.drawing.replace(p.id, out));
+      if (out) ed.commit(isChamfer ? t('Chamfer') : t('Fillet'), () => ed.drawing.replace(p.id, out));
       if (!multiple) return;
       continue;
     }
     ed.setSelection([first.id]);
-    const second = await ed.getEntity('Select second object (Shift for a sharp corner)', { filter: (e) => filter(e) });
+    const second = await ed.getEntity(t('Select second object (Shift for a sharp corner)'), { filter: (e) => filter(e) });
     ed.clearSelection();
     if (!second || second.option) return;
     const sharp = !!ed.shiftDown;
@@ -461,9 +462,9 @@ async function filletOrChamfer(ed, isChamfer) {
       console.warn(err);
     }
     if (!res) {
-      ed.ui.log(isChamfer ? 'Those objects cannot be chamfered.' : 'Those objects cannot be filleted with this radius.', 'error');
+      ed.ui.log(isChamfer ? t('Those objects cannot be chamfered.') : t('Those objects cannot be filleted with this radius.'), 'error');
     } else {
-      ed.commit(isChamfer ? 'Chamfer' : 'Fillet', () => {
+      ed.commit(isChamfer ? t('Chamfer') : t('Fillet'), () => {
         // A null side means that object shrank to nothing.
         if (res.e1) ed.drawing.replace(first.id, res.e1);
         else ed.drawing.remove(first.id);
@@ -479,13 +480,13 @@ async function filletOrChamfer(ed, isChamfer) {
   }
 }
 
-export const FILLET = { name: 'FILLET', aliases: ['F'], label: 'Fillet', icon: 'fillet', run: (ed) => filletOrChamfer(ed, false) };
-export const CHAMFER = { name: 'CHAMFER', aliases: ['CHA'], label: 'Chamfer', icon: 'chamfer', run: (ed) => filletOrChamfer(ed, true) };
+export const FILLET = { name: 'FILLET', aliases: ['F'], label: t('Fillet'), icon: 'fillet', run: (ed) => filletOrChamfer(ed, false) };
+export const CHAMFER = { name: 'CHAMFER', aliases: ['CHA'], label: t('Chamfer'), icon: 'chamfer', run: (ed) => filletOrChamfer(ed, true) };
 
 export const ARRAYRECT = {
   name: 'ARRAYRECT',
   aliases: ['AR', 'ARRAY'],
-  label: 'Rectangular array',
+  label: t('Rectangular array'),
   icon: 'array-rect',
   async run(ed) {
     const ids = await ed.getSelection();
@@ -497,22 +498,22 @@ export const ARRAYRECT = {
       .reduce((a, c) => [Math.min(a[0], c[0]), Math.min(a[1], c[1]), Math.max(a[2], c[2]), Math.max(a[3], c[3])], [Infinity, Infinity, -Infinity, -Infinity]);
     const w = Number.isFinite(b[0]) ? (b[2] - b[0]) * 1.5 || 10 : 10,
       h = Number.isFinite(b[1]) ? (b[3] - b[1]) * 1.5 || 10 : 10;
-    const c0 = await ed.getNumber('Number of columns', { default: ed.arrCols ?? 4, min: 1, max: 10000 });
+    const c0 = await ed.getNumber(t('Number of columns'), { default: ed.arrCols ?? 4, min: 1, max: 10000 });
     if (!Number.isFinite(c0)) return;
-    const r0 = await ed.getNumber('Number of rows', { default: ed.arrRows ?? 3, min: 1, max: 10000 });
+    const r0 = await ed.getNumber(t('Number of rows'), { default: ed.arrRows ?? 3, min: 1, max: 10000 });
     if (!Number.isFinite(r0)) return;
     const cols = Math.max(1, Math.round(c0)),
       rows = Math.max(1, Math.round(r0));
     if (cols * rows * ids.length > 200000) {
-      ed.ui.log('That array would create too many objects (limit 200,000).', 'error');
+      ed.ui.log(t('That array would create too many objects (limit 200,000).'), 'error');
       return;
     }
-    const dx = await ed.getDistance('Distance between columns', { default: ed.arrDx ?? w });
+    const dx = await ed.getDistance(t('Distance between columns'), { default: ed.arrDx ?? w });
     if (typeof dx !== 'number') return;
-    const dy = await ed.getDistance('Distance between rows', { default: ed.arrDy ?? h });
+    const dy = await ed.getDistance(t('Distance between rows'), { default: ed.arrDy ?? h });
     if (typeof dy !== 'number') return;
     Object.assign(ed, { arrCols: cols, arrRows: rows, arrDx: dx, arrDy: dy });
-    ed.commit('Array', () => {
+    ed.commit(t('Array'), () => {
       for (let r = 0; r < rows; r++)
         for (let c = 0; c < cols; c++) {
           if (!r && !c) continue;
@@ -527,25 +528,25 @@ export const ARRAYRECT = {
 export const ARRAYPOLAR = {
   name: 'ARRAYPOLAR',
   aliases: ['ARP'],
-  label: 'Polar array',
+  label: t('Polar array'),
   icon: 'array-polar',
   async run(ed) {
     const ids = await ed.getSelection();
     if (!ids.length) return;
     showSelection(ed, ids);
-    const c = await ed.getPoint('Center point of array');
+    const c = await ed.getPoint(t('Center point of array'));
     if (!c || c.option) return;
-    const n0 = await ed.getNumber('Number of items', { default: ed.polarItems ?? 6, min: 2, max: 10000 });
+    const n0 = await ed.getNumber(t('Number of items'), { default: ed.polarItems ?? 6, min: 2, max: 10000 });
     if (!Number.isFinite(n0)) return;
     const n = Math.max(2, Math.round(n0));
-    const fill = await ed.getAngle('Angle to fill (+ counter-clockwise, - clockwise)', { default: TAU });
+    const fill = await ed.getAngle(t('Angle to fill (+ counter-clockwise, - clockwise)'), { default: TAU });
     if (typeof fill !== 'number') return;
-    const rot = await ed.getKeyword('Rotate items as copied?', opts('Yes', 'No'), 'yes');
+    const rot = await ed.getKeyword(t('Rotate items as copied?'), opts('Yes', 'No'), 'yes');
     if (rot === null) return;
     ed.polarItems = n;
     const full = Math.abs(Math.abs(fill) - TAU) < 1e-9;
     const step = full ? fill / n : fill / (n - 1);
-    ed.commit('Polar array', () => {
+    ed.commit(t('Polar array'), () => {
       for (let i = 1; i < n; i++) {
         const a = step * i;
         let m = M.rotate(a, c.x, c.y);
@@ -569,13 +570,13 @@ export const ARRAYPOLAR = {
 export const STRETCH = {
   name: 'STRETCH',
   aliases: ['S'],
-  label: 'Stretch',
+  label: t('Stretch'),
   icon: 'stretch',
   async run(ed) {
     ed.clearSelection();
-    const a = await ed.getPoint('First corner of crossing window');
+    const a = await ed.getPoint(t('First corner of crossing window'));
     if (!a || a.option) return;
-    const b = await ed.getPoint('Opposite corner', {
+    const b = await ed.getPoint(t('Opposite corner'), {
       base: a,
       rubber: false,
       noSnap: true,
@@ -591,15 +592,15 @@ export const STRETCH = {
     const ids = ed.windowSelect(rect[0], rect[1], rect[2], rect[3], true);
     if (!ids.length) return;
     ed.setSelection(ids);
-    const base = await ed.getPoint('Base point');
+    const base = await ed.getPoint(t('Base point'));
     if (!base || base.option) return;
     const inside = (x, y) => x >= rect[0] && x <= rect[2] && y >= rect[1] && y <= rect[3];
     const stretchAll = (dx, dy) => ids.map((id) => [id, stretchEntity(ed.drawing.get(id), inside, dx, dy)]);
     ed.renderer.setHidden(new Set(ids));
-    const to = await ed.getPoint('Second point', { base, preview: (p) => stretchAll(p.x - base.x, p.y - base.y).map((x) => x[1]) });
+    const to = await ed.getPoint(t('Second point'), { base, preview: (p) => stretchAll(p.x - base.x, p.y - base.y).map((x) => x[1]) });
     ed.renderer.setHidden(new Set());
     if (!to || to.option) return;
-    ed.commit('Stretch', () => {
+    ed.commit(t('Stretch'), () => {
       for (const [id, e] of stretchAll(to.x - base.x, to.y - base.y)) ed.drawing.replace(id, e);
     });
     ed.clearSelection();
@@ -622,8 +623,8 @@ export function stretchEntity(e, inside, dx, dy) {
     }
     case 'arc': {
       const s = { x: e.cx + e.r * Math.cos(e.start), y: e.cy + e.r * Math.sin(e.start) };
-      const t = { x: e.cx + e.r * Math.cos(e.end), y: e.cy + e.r * Math.sin(e.end) };
-      if (inside(s.x, s.y) && inside(t.x, t.y)) return transformEntity(e, M.translate(dx, dy));
+      const end = { x: e.cx + e.r * Math.cos(e.end), y: e.cy + e.r * Math.sin(e.end) };
+      if (inside(s.x, s.y) && inside(end.x, end.y)) return transformEntity(e, M.translate(dx, dy));
       return e;
     }
     case 'dimension': {
@@ -668,21 +669,21 @@ function refPoint(e) {
 export const BREAK = {
   name: 'BREAK',
   aliases: ['BR'],
-  label: 'Break',
+  label: t('Break'),
   icon: 'break',
   async run(ed) {
     ed.clearSelection();
     const filter = (e) => ['line', 'xline', 'ray', 'circle', 'arc', 'ellipse', 'polyline'].includes(e.type);
-    const pick = await ed.getEntity('Select object (the pick point is the first break point)', { filter });
+    const pick = await ed.getEntity(t('Select object (the pick point is the first break point)'), { filter });
     if (!pick || pick.option) return;
     ed.setSelection([pick.id]);
     let p1 = { x: pick.x, y: pick.y };
-    let p2 = await ed.getPoint('Second break point', { options: opts('First point') });
+    let p2 = await ed.getPoint(t('Second break point'), { options: opts('First point') });
     if (!p2) return;
     if (p2.option) {
-      p1 = await ed.getPoint('First break point');
+      p1 = await ed.getPoint(t('First break point'));
       if (!p1 || p1.option) return;
-      p2 = await ed.getPoint('Second break point', { base: p1 });
+      p2 = await ed.getPoint(t('Second break point'), { base: p1 });
       if (!p2 || p2.option) return;
     }
     ed.clearSelection();
@@ -694,8 +695,8 @@ export const BREAK = {
     } catch {
       out = null;
     }
-    if (!out) return ed.ui.log('That object cannot be broken there.', 'error');
-    ed.commit('Break', () => {
+    if (!out) return ed.ui.log(t('That object cannot be broken there.'), 'error');
+    ed.commit(t('Break'), () => {
       ed.drawing.remove(pick.id);
       for (const e of out) ed.drawing.add(fresh({ ...pick.ent, ...e, id: undefined }));
     });
@@ -705,15 +706,15 @@ export const BREAK = {
 export const BREAKATPOINT = {
   name: 'BREAKATPOINT',
   aliases: ['BAP'],
-  label: 'Break at point',
+  label: t('Break at point'),
   icon: 'break-point',
   async run(ed) {
     ed.clearSelection();
     const filter = (e) => ['line', 'arc', 'ellipse', 'polyline', 'spline'].includes(e.type);
-    const pick = await ed.getEntity('Select object to break', { filter });
+    const pick = await ed.getEntity(t('Select object to break'), { filter });
     if (!pick || pick.option) return;
     ed.setSelection([pick.id]);
-    const p = await ed.getPoint('Break point');
+    const p = await ed.getPoint(t('Break point'));
     ed.clearSelection();
     if (!p || p.option) return;
     let out = null;
@@ -723,8 +724,8 @@ export const BREAKATPOINT = {
     } catch {
       out = null;
     }
-    if (!out || !out.length) return ed.ui.log('That object cannot be broken there.', 'error');
-    ed.commit('Break at point', () => {
+    if (!out || !out.length) return ed.ui.log(t('That object cannot be broken there.'), 'error');
+    ed.commit(t('Break at point'), () => {
       ed.drawing.remove(pick.id);
       for (const e of out) ed.drawing.add(fresh({ ...pick.ent, ...e, id: undefined }));
     });
@@ -734,12 +735,12 @@ export const BREAKATPOINT = {
 export const JOIN = {
   name: 'JOIN',
   aliases: ['J'],
-  label: 'Join',
+  label: t('Join'),
   icon: 'join',
   async run(ed) {
-    const ids = await ed.getSelection('Select objects to join');
+    const ids = await ed.getSelection(t('Select objects to join'));
     if (ids.length < 2) {
-      if (ids.length) ed.ui.log('Select at least two objects to join.', 'error');
+      if (ids.length) ed.ui.log(t('Select at least two objects to join.'), 'error');
       return;
     }
     const ents = ids.map((id) => ed.drawing.get(id));
@@ -751,15 +752,15 @@ export const JOIN = {
       res = null;
     }
     if (!res || !res.consumedIds?.length) {
-      ed.ui.log('Nothing could be joined. Objects must touch end to end.', 'error');
+      ed.ui.log(t('Nothing could be joined. Objects must touch end to end.'), 'error');
       return;
     }
-    ed.commit('Join', () => {
+    ed.commit(t('Join'), () => {
       for (const id of res.consumedIds) ed.drawing.remove(id);
       for (const e of res.result) ed.drawing.add(fresh(e));
     });
     ed.clearSelection();
-    ed.ui.log(`${res.consumedIds.length} objects joined into ${res.result.length}`, 'muted');
+    ed.ui.log(t('{consumed} objects joined into {result}', { consumed: res.consumedIds.length, result: res.result.length }), 'muted');
   },
 };
 
@@ -774,9 +775,9 @@ export function explodeOne(ed, e) {
       if (!block) return null;
       const m = insertMatrix(e, block);
       return block.entities.map((sub) => {
-        const t = transformEntity(sub, m);
+        const te = transformEntity(sub, m);
         return {
-          ...t,
+          ...te,
           layer: sub.layer === '0' ? e.layer : sub.layer,
           color: sub.color === COLOR_BYBLOCK ? e.color : sub.color,
           lineweight: sub.lineweight === LW_BYBLOCK ? e.lineweight : sub.lineweight,
@@ -841,13 +842,13 @@ function ringToLoop(r) {
 export const EXPLODE = {
   name: 'EXPLODE',
   aliases: ['X'],
-  label: 'Explode',
+  label: t('Explode'),
   icon: 'explode',
   async run(ed) {
     const ids = await ed.getSelection();
     if (!ids.length) return;
     let count = 0;
-    ed.commit('Explode', () => {
+    ed.commit(t('Explode'), () => {
       for (const id of ids) {
         const e = ed.drawing.get(id);
         const parts = explodeOne(ed, e);
@@ -858,33 +859,33 @@ export const EXPLODE = {
       }
     });
     ed.clearSelection();
-    if (!count) ed.ui.log('None of the selected objects can be exploded.', 'error');
-    else ed.ui.log(`${count} object${count === 1 ? '' : 's'} exploded`, 'muted');
+    if (!count) ed.ui.log(t('None of the selected objects can be exploded.'), 'error');
+    else ed.ui.log(t('{n} object{s} exploded', { n: count, s: count === 1 ? '' : 's' }), 'muted');
   },
 };
 
 export const LENGTHEN = {
   name: 'LENGTHEN',
   aliases: ['LEN'],
-  label: 'Lengthen',
+  label: t('Lengthen'),
   icon: 'lengthen',
   async run(ed) {
     ed.clearSelection();
-    const mode = await ed.getKeyword('Measure', [...opts('Delta', 'Total', 'Percent')], ed.lenMode ?? 'delta');
+    const mode = await ed.getKeyword(t('Measure'), [...opts('Delta', 'Total', 'Percent')], ed.lenMode ?? 'delta');
     if (!mode) return;
     ed.lenMode = mode;
-    const label = { delta: 'Length to add (negative to shorten)', total: 'Total length', percent: 'Percent of current length' }[mode];
+    const label = { delta: t('Length to add (negative to shorten)'), total: t('Total length'), percent: t('Percent of current length') }[mode];
     const v = await ed.getDistance(label, { default: ed.lenValue?.[mode] ?? (mode === 'percent' ? 100 : 1) });
     if (typeof v !== 'number') return;
     ed.lenValue = { ...(ed.lenValue || {}), [mode]: v };
     for (;;) {
-      const pick = await ed.getEntity('Select an end to change (Enter to finish)', { filter: (e) => e.type === 'line' || e.type === 'arc' });
+      const pick = await ed.getEntity(t('Select an end to change (Enter to finish)'), { filter: (e) => e.type === 'line' || e.type === 'arc' });
       if (!pick || pick.option) return;
       const e = pick.ent;
       const len = lengthOf(e);
       const target = mode === 'delta' ? len + v : mode === 'total' ? v : (len * v) / 100;
       if (!(target > 1e-12)) {
-        ed.ui.log('The new length must be greater than zero.', 'error');
+        ed.ui.log(t('The new length must be greater than zero.'), 'error');
         continue;
       }
       let next;
@@ -896,7 +897,7 @@ export const LENGTHEN = {
       } else {
         const sweep = target / e.r;
         if (sweep >= TAU) {
-          ed.ui.log('That length would close the arc.', 'error');
+          ed.ui.log(t('That length would close the arc.'), 'error');
           continue;
         }
         const ps = { x: e.cx + e.r * Math.cos(e.start), y: e.cy + e.r * Math.sin(e.start) };
@@ -904,7 +905,7 @@ export const LENGTHEN = {
         const nearStart = dist(pick, ps) < dist(pick, pe);
         next = nearStart ? { ...e, start: norm(e.end - sweep) } : { ...e, end: norm(e.start + sweep) };
       }
-      ed.commit('Lengthen', () => ed.drawing.replace(pick.id, next));
+      ed.commit(t('Lengthen'), () => ed.drawing.replace(pick.id, next));
     }
   },
 };
@@ -912,23 +913,23 @@ export const LENGTHEN = {
 export const MATCHPROP = {
   name: 'MATCHPROP',
   aliases: ['MA', 'PAINTER'],
-  label: 'Match properties',
+  label: t('Match properties'),
   icon: 'match-props',
   async run(ed) {
     ed.clearSelection();
-    const src = await ed.getEntity('Select source object');
+    const src = await ed.getEntity(t('Select source object'));
     if (!src || src.option) return;
     const s = src.ent;
     ed.setSelection([src.id]);
     for (;;) {
-      const dst = await ed.getEntity('Select destination object (Enter to finish)');
+      const dst = await ed.getEntity(t('Select destination object (Enter to finish)'));
       if (!dst || dst.option) break;
       const patch = { layer: s.layer, color: s.color, linetype: s.linetype, lineweight: s.lineweight, ltscale: s.ltscale ?? 1 };
       const d = dst.ent;
       if ((d.type === 'text' || d.type === 'mtext') && (s.type === 'text' || s.type === 'mtext')) Object.assign(patch, { h: s.h, style: s.style });
       if (d.type === 'dimension' && s.type === 'dimension') patch.style = s.style;
       if (d.type === 'hatch' && s.type === 'hatch') Object.assign(patch, { pattern: s.pattern, scale: s.scale, angle: s.angle });
-      ed.commit('Match properties', () => ed.drawing.update(dst.id, patch));
+      ed.commit(t('Match properties'), () => ed.drawing.update(dst.id, patch));
     }
     ed.clearSelection();
   },
@@ -937,14 +938,14 @@ export const MATCHPROP = {
 export const DRAWORDER = {
   name: 'DRAWORDER',
   aliases: ['DR'],
-  label: 'Draw order',
+  label: t('Draw order'),
   icon: 'draw-order',
   async run(ed, args) {
     const ids = await ed.getSelection();
     if (!ids.length) return;
-    const where = args?.where ?? (await ed.getKeyword('Draw order', [{ key: 'F', label: 'Front', value: 'front' }, { key: 'B', label: 'Back', value: 'back' }], 'front'));
+    const where = args?.where ?? (await ed.getKeyword(t('Draw order'), [{ key: 'F', label: 'Front', value: 'front' }, { key: 'B', label: 'Back', value: 'back' }], 'front'));
     if (!where) return;
-    ed.commit('Draw order', () => ed.drawing.reorder(ids, where === 'front'));
+    ed.commit(t('Draw order'), () => ed.drawing.reorder(ids, where === 'front'));
     ed.clearSelection();
   },
 };
@@ -952,25 +953,25 @@ export const DRAWORDER = {
 export const ALIGNCMD = {
   name: 'ALIGN',
   aliases: ['AL'],
-  label: 'Align',
+  label: t('Align'),
   icon: 'align',
   async run(ed) {
     const ids = await ed.getSelection();
     if (!ids.length) return;
     showSelection(ed, ids);
-    const s1 = await ed.getPoint('First source point');
+    const s1 = await ed.getPoint(t('First source point'));
     if (!s1 || s1.option) return;
-    const d1 = await ed.getPoint('First destination point', { base: s1 });
+    const d1 = await ed.getPoint(t('First destination point'), { base: s1 });
     if (!d1 || d1.option) return;
-    const s2 = await ed.getPoint('Second source point (Enter to only move)');
+    const s2 = await ed.getPoint(t('Second source point (Enter to only move)'));
     if (!s2 || s2.option) {
-      transformAll(ed, ids, M.translate(d1.x - s1.x, d1.y - s1.y), false, 'Align');
+      transformAll(ed, ids, M.translate(d1.x - s1.x, d1.y - s1.y), false, t('Align'));
       ed.clearSelection();
       return;
     }
-    const d2 = await ed.getPoint('Second destination point', { base: s2 });
+    const d2 = await ed.getPoint(t('Second destination point'), { base: s2 });
     if (!d2 || d2.option) return;
-    const scale = await ed.getKeyword('Scale objects to the alignment points?', opts('Yes', 'No'), 'no');
+    const scale = await ed.getKeyword(t('Scale objects to the alignment points?'), opts('Yes', 'No'), 'no');
     if (scale === null) return;
     const a = angleOf(d1, d2) - angleOf(s1, s2);
     let m = mulMatrix(M.rotate(a, d1.x, d1.y), M.translate(d1.x - s1.x, d1.y - s1.y));
@@ -978,7 +979,7 @@ export const ALIGNCMD = {
       const k = dist(d1, d2) / Math.max(1e-12, dist(s1, s2));
       m = mulMatrix(M.scale(k, d1.x, d1.y), m);
     }
-    transformAll(ed, ids, m, false, 'Align');
+    transformAll(ed, ids, m, false, t('Align'));
     ed.clearSelection();
   },
 };

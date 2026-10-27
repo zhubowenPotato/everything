@@ -9,11 +9,12 @@ import { icon } from './icons.js';
 import { showMenu, closeMenus } from './menu.js';
 import { colorLabel, colorCss } from '../core/colors.js';
 import { COLOR_BYLAYER, COLOR_BYBLOCK, LW_BYLAYER, LW_BYBLOCK, LW_DEFAULT, LINEWEIGHTS } from '../core/schema.js';
+import { t } from '../i18n/index.js';
 
 export function lwLabel(lw) {
-  if (lw === LW_BYLAYER) return 'ByLayer';
-  if (lw === LW_BYBLOCK) return 'ByBlock';
-  if (lw === LW_DEFAULT) return 'Default';
+  if (lw === LW_BYLAYER) return t('ByLayer');
+  if (lw === LW_BYBLOCK) return t('ByBlock');
+  if (lw === LW_DEFAULT) return t('Default');
   return `${(lw / 100).toFixed(2)} mm`;
 }
 
@@ -63,7 +64,7 @@ function ltSample(pattern) {
 export function buildCombo(app, kind) {
   const button = h('button.combo', { type: 'button', 'aria-haspopup': 'menu' });
   const el = h('div.combo-wrap', { 'data-combo': kind }, button);
-  const labels = { layer: 'Layer', color: 'Color', linetype: 'Linetype', lineweight: 'Lineweight', textStyle: 'Text style', dimStyle: 'Dimension style', textHeight: 'Text height' };
+  const labels = { layer: t('Layer'), color: t('Color'), linetype: t('Linetype'), lineweight: t('Lineweight'), textStyle: t('Text style'), dimStyle: t('Dimension style'), textHeight: t('Text height') };
   button.dataset.tip = labels[kind];
 
   const refresh = () => {
@@ -81,45 +82,45 @@ export function buildCombo(app, kind) {
         content = [
           h('span.layer-flags', l ? [icon(l.on ? 'eye' : 'eye-off', 14), icon(l.frozen ? 'freeze' : 'thaw', 14), icon(l.locked ? 'lock' : 'unlock', 14)] : null),
           l ? swatch(colorCss(l.color)) : null,
-          h('span.combo-text', name || 'Varies'),
+          h('span.combo-text', name || t('Varies')),
         ];
-        aria = `Layer: ${name || 'varies'}`;
+        aria = t('Layer: {name}', { name: name || t('varies') });
         break;
       }
       case 'color': {
         const s = selectionValue(app, 'color');
         const c = s.has ? (s.varies ? undefined : s.value) : hd.ccolor;
         const layerColor = d.layers.get(hd.clayer)?.color ?? 7;
-        content = [c === undefined ? null : swatch(colorCss(c, layerColor)), h('span.combo-text', c === undefined ? 'Varies' : colorLabel(c))];
-        aria = `Color: ${c === undefined ? 'varies' : colorLabel(c)}`;
+        content = [c === undefined ? null : swatch(colorCss(c, layerColor)), h('span.combo-text', c === undefined ? t('Varies') : colorLabel(c))];
+        aria = t('Color: {value}', { value: c === undefined ? t('varies') : colorLabel(c) });
         break;
       }
       case 'linetype': {
         const s = selectionValue(app, 'linetype');
         const v = s.has ? (s.varies ? undefined : s.value) : hd.cltype;
         const lt = d.linetypes.get(v);
-        content = [ltSample(lt?.pattern), h('span.combo-text', v ?? 'Varies')];
-        aria = `Linetype: ${v ?? 'varies'}`;
+        content = [ltSample(lt?.pattern), h('span.combo-text', v ?? t('Varies'))];
+        aria = t('Linetype: {value}', { value: v ?? t('varies') });
         break;
       }
       case 'lineweight': {
         const s = selectionValue(app, 'lineweight');
         const v = s.has ? (s.varies ? undefined : s.value) : hd.clweight;
-        content = [v === undefined ? null : lwSample(v), h('span.combo-text', v === undefined ? 'Varies' : lwLabel(v))];
-        aria = `Lineweight: ${v === undefined ? 'varies' : lwLabel(v)}`;
+        content = [v === undefined ? null : lwSample(v), h('span.combo-text', v === undefined ? t('Varies') : lwLabel(v))];
+        aria = t('Lineweight: {value}', { value: v === undefined ? t('varies') : lwLabel(v) });
         break;
       }
       case 'textStyle':
         content = [icon('text-style', 14), h('span.combo-text', hd.textStyle)];
-        aria = `Text style: ${hd.textStyle}`;
+        aria = t('Text style: {name}', { name: hd.textStyle });
         break;
       case 'dimStyle':
         content = [icon('dim-style', 14), h('span.combo-text', hd.dimStyle)];
-        aria = `Dimension style: ${hd.dimStyle}`;
+        aria = t('Dimension style: {name}', { name: hd.dimStyle });
         break;
       case 'textHeight':
-        content = [h('span.combo-prefix', 'Height'), h('span.combo-text', String(+hd.textHeight.toFixed(4)))];
-        aria = `Text height: ${hd.textHeight}`;
+        content = [h('span.combo-prefix', t('Height')), h('span.combo-text', String(+hd.textHeight.toFixed(4)))];
+        aria = t('Text height: {value}', { value: hd.textHeight });
         break;
     }
     button.append(...content.filter(Boolean), h('span.combo-caret', icon('chevron-down', 12)));
@@ -140,12 +141,12 @@ export function buildCombo(app, kind) {
         const pick = (c) => () => app.applyProperty('color', c);
         const cur = hasSel ? selectionValue(app, 'color').value : hd.ccolor;
         items = [
-          { label: 'ByLayer', icon: swatch(colorCss(COLOR_BYLAYER, d.layers.get(hd.clayer)?.color)), checked: cur === COLOR_BYLAYER, radio: true, action: pick(COLOR_BYLAYER) },
-          { label: 'ByBlock', icon: swatch('var(--fg)'), checked: cur === COLOR_BYBLOCK, radio: true, action: pick(COLOR_BYBLOCK) },
+          { label: t('ByLayer'), icon: swatch(colorCss(COLOR_BYLAYER, d.layers.get(hd.clayer)?.color)), checked: cur === COLOR_BYLAYER, radio: true, action: pick(COLOR_BYLAYER) },
+          { label: t('ByBlock'), icon: swatch('var(--fg)'), checked: cur === COLOR_BYBLOCK, radio: true, action: pick(COLOR_BYBLOCK) },
           { separator: true },
           ...[1, 2, 3, 4, 5, 6, 7].map((i) => ({ label: colorLabel(i), icon: swatch(colorCss(i)), checked: cur === i, radio: true, action: pick(i) })),
           { separator: true },
-          { label: 'More colors...', icon: 'palette', action: async () => {
+          { label: t('More colors...'), icon: 'palette', action: async () => {
             const c = await app.colorDialog(cur);
             if (c !== null && c !== undefined) app.applyProperty('color', c);
           } },
@@ -155,12 +156,12 @@ export function buildCombo(app, kind) {
       case 'linetype': {
         const cur = hasSel ? selectionValue(app, 'linetype').value : hd.cltype;
         items = [
-          { label: 'ByLayer', checked: cur === 'ByLayer', radio: true, action: () => app.applyProperty('linetype', 'ByLayer') },
-          { label: 'ByBlock', checked: cur === 'ByBlock', radio: true, action: () => app.applyProperty('linetype', 'ByBlock') },
+          { label: t('ByLayer'), checked: cur === 'ByLayer', radio: true, action: () => app.applyProperty('linetype', 'ByLayer') },
+          { label: t('ByBlock'), checked: cur === 'ByBlock', radio: true, action: () => app.applyProperty('linetype', 'ByBlock') },
           { separator: true },
           ...[...d.linetypes.values()].map((lt) => ({ label: lt.name, icon: ltSample(lt.pattern), checked: cur === lt.name, radio: true, action: () => app.applyProperty('linetype', lt.name) })),
           { separator: true },
-          { label: 'Load linetypes...', icon: 'lineweight', action: () => app.run('LINETYPE') },
+          { label: t('Load linetypes...'), icon: 'lineweight', action: () => app.run('LINETYPE') },
         ];
         break;
       }
@@ -171,15 +172,15 @@ export function buildCombo(app, kind) {
       }
       case 'textStyle':
         items = [...d.textStyles.keys()].map((n) => ({ label: n, checked: hd.textStyle === n, radio: true, action: () => app.applyStyle('textStyle', n) }));
-        items.push({ separator: true }, { label: 'Manage text styles...', icon: 'text-style', action: () => app.run('STYLE') });
+        items.push({ separator: true }, { label: t('Manage text styles...'), icon: 'text-style', action: () => app.run('STYLE') });
         break;
       case 'dimStyle':
         items = [...d.dimStyles.keys()].map((n) => ({ label: n, checked: hd.dimStyle === n, radio: true, action: () => app.applyStyle('dimStyle', n) }));
-        items.push({ separator: true }, { label: 'Manage dimension styles...', icon: 'dim-style', action: () => app.run('DIMSTYLE') });
+        items.push({ separator: true }, { label: t('Manage dimension styles...'), icon: 'dim-style', action: () => app.run('DIMSTYLE') });
         break;
       case 'textHeight':
         items = [1, 1.8, 2.5, 3.5, 5, 7, 10, 14, 20].map((v) => ({ label: String(v), checked: hd.textHeight === v, radio: true, action: () => app.applyStyle('textHeight', v) }));
-        items.push({ separator: true }, { label: 'Other...', action: () => app.promptTextHeight() });
+        items.push({ separator: true }, { label: t('Other...'), action: () => app.promptTextHeight() });
         break;
     }
     showMenu(button, items, { label: labels[kind], className: 'combo-menu' });
@@ -201,7 +202,7 @@ function showLayerMenu(app, anchor, refresh) {
         'button.icon-btn.sm',
         {
           type: 'button',
-          'aria-label': `${label} ${name}`,
+          'aria-label': t('{label} {name}', { label, name }),
           'aria-pressed': String(!!l[prop]),
           'data-tip': label,
           onClick: (e) => {
@@ -218,7 +219,7 @@ function showLayerMenu(app, anchor, refresh) {
       h(
         'div.layer-row',
         { role: 'none' },
-        h('span.layer-toggles', toggle('on', 'eye', 'eye-off', 'Show or hide'), toggle('frozen', 'freeze', 'thaw', 'Freeze or thaw'), toggle('locked', 'lock', 'unlock', 'Lock or unlock')),
+        h('span.layer-toggles', toggle('on', 'eye', 'eye-off', t('Show or hide')), toggle('frozen', 'freeze', 'thaw', t('Freeze or thaw')), toggle('locked', 'lock', 'unlock', t('Lock or unlock'))),
         h(
           'button.menu-item.layer-name',
           {
@@ -234,14 +235,14 @@ function showLayerMenu(app, anchor, refresh) {
           },
           swatch(colorCss(l.color)),
           h('span.menu-label', name),
-          current ? h('span.badge', 'Current') : null,
+          current ? h('span.badge', t('Current')) : null,
         ),
       ),
     );
   }
   const list = h('div.layer-list', rows);
-  showMenu(anchor, [{ custom: list }, { separator: true }, { label: 'Layer properties...', icon: 'layer-props', action: () => app.run('LAYER') }], {
-    label: 'Layers',
+  showMenu(anchor, [{ custom: list }, { separator: true }, { label: t('Layer properties...'), icon: 'layer-props', action: () => app.run('LAYER') }], {
+    label: t('Layers'),
     className: 'layer-menu',
     focusFirst: true,
     // Reopened after a toggle: focus still returns to the combo.

@@ -30,6 +30,7 @@ import { encodeDrawing, decodeDrawing, fileKind, baseName, NATIVE_EXT } from './
 import { importDxf, exportDxf } from './io/dxf-client.js';
 import * as storage from './io/storage.js';
 import * as platform from './platform.js';
+import { t, setLocale, getLocale, LOCALES } from './i18n/index.js';
 
 const SETTINGS_KEY = 'cad.settings';
 const THEME_KEY = 'cad.theme';
@@ -93,7 +94,7 @@ export class App {
     try {
       this.renderer = new Renderer(shell.glCanvas, this.camera);
     } catch (err) {
-      this.fatal('This app needs WebGL2, which this browser or device does not provide. Try a current version of Chrome, Edge, Firefox or Safari.', err);
+      this.fatal(t('This app needs WebGL2, which this browser or device does not provide. Try a current version of Chrome, Edge, Firefox or Safari.'), err);
       return;
     }
     this.overlay = new Overlay(shell.overlay);
@@ -149,8 +150,8 @@ export class App {
       if (document.visibilityState === 'hidden') this.flushAutosave();
     });
     window.addEventListener('pagehide', () => this.flushAutosave());
-    this.cmdline.log('Ready. Type a command, or pick a tool from the ribbon. Press F1 for help.', 'muted');
-    if (!this.ownsSession) toast('The app is also open in another tab. Drawings in this tab are not kept for recovery, so save your work.', { timeout: 9000 });
+    this.cmdline.log(t('Ready. Type a command, or pick a tool from the ribbon. Press F1 for help.'), 'muted');
+    if (!this.ownsSession) toast(t('The app is also open in another tab. Drawings in this tab are not kept for recovery, so save your work.'), { timeout: 9000 });
   }
 
   fatal(message, err) {
@@ -181,8 +182,9 @@ export class App {
   nextName() {
     let i = 1;
     const names = new Set(this.docs.map((d) => d.name));
-    while (names.has(`Drawing${i}`)) i++;
-    return `Drawing${i}`;
+    const base = t('Drawing');
+    while (names.has(`${base}${i}`)) i++;
+    return `${base}${i}`;
   }
 
   addDoc(drawing, name, file = null, id = null) {
@@ -287,7 +289,7 @@ export class App {
       return;
     }
     clear(this.shell.title).append(h('span.title-name', d.name));
-    if (d.drawing.modified) this.shell.title.append(h('span.title-mod', 'Edited'));
+    if (d.drawing.modified) this.shell.title.append(h('span.title-mod', t('Edited')));
     document.title = `${d.drawing.modified ? '* ' : ''}${d.name} - CAD`;
     try {
       if (platform.puterEnv() === 'app') puter.ui.setWindowTitle?.(`${d.name} - CAD`);
@@ -302,8 +304,8 @@ export class App {
       r = this.shell.redoBtn;
     u.disabled = !d?.canUndo;
     r.disabled = !d?.canRedo;
-    u.dataset.tip = d?.undoLabel ? `Undo ${d.undoLabel}` : 'Undo';
-    r.dataset.tip = d?.redoLabel ? `Redo ${d.redoLabel}` : 'Redo';
+    u.dataset.tip = d?.undoLabel ? t('Undo {label}', { label: d.undoLabel }) : t('Undo');
+    r.dataset.tip = d?.redoLabel ? t('Redo {label}', { label: d.redoLabel }) : t('Redo');
   }
 
   selectionChanged() {
@@ -366,12 +368,12 @@ export class App {
     clear(es).append(
       h(
         'div.start',
-        h('h2', 'No drawing open'),
+        h('h2', t('No drawing open')),
         h(
           'div.start-actions',
-          h('button.btn.primary', { type: 'button', onClick: () => this.newDrawing() }, icon('file-plus', 16), 'New drawing'),
-          h('button.btn', { type: 'button', onClick: () => this.open() }, icon('folder-open', 16), 'Open'),
-          h('button.btn', { type: 'button', onClick: () => this.openSample() }, icon('file-text', 16), 'Sample drawing'),
+          h('button.btn.primary', { type: 'button', onClick: () => this.newDrawing() }, icon('file-plus', 16), t('New drawing')),
+          h('button.btn', { type: 'button', onClick: () => this.open() }, icon('folder-open', 16), t('Open')),
+          h('button.btn', { type: 'button', onClick: () => this.openSample() }, icon('file-text', 16), t('Sample drawing')),
         ),
       ),
     );
@@ -380,7 +382,7 @@ export class App {
 
   /** Open the built-in sample drawing in a new tab. */
   openSample() {
-    const doc = this.addDoc(sampleDrawing(), 'Sample plate');
+    const doc = this.addDoc(sampleDrawing(), t('Sample plate'));
     this.zoomExtentsSoon();
     return doc;
   }
@@ -424,15 +426,15 @@ export class App {
       this.recoveryFailed = false;
     } catch (err) {
       console.warn('Autosave failed', err);
-      if (!this.recoveryFailed) toast('Drawings cannot be kept in this browser for recovery (storage is unavailable or full). Save your work to a file.', { kind: 'error', timeout: 9000 });
+      if (!this.recoveryFailed) toast(t('Drawings cannot be kept in this browser for recovery (storage is unavailable or full). Save your work to a file.'), { kind: 'error', timeout: 9000 });
       this.recoveryFailed = true;
     }
   }
 
   /** Write pending recovery copies now; resolves when every copy in progress is written. */
   flushAutosave() {
-    for (const [id, t] of this._autosaveTimers) {
-      clearTimeout(t);
+    for (const [id, timer] of this._autosaveTimers) {
+      clearTimeout(timer);
       const doc = this.docs.find((d) => d.id === id);
       if (doc) this.autosave(doc);
     }
@@ -510,7 +512,7 @@ export class App {
   async openBuffer(buffer, name, file) {
     const kind = fileKind(name);
     if (!kind) {
-      toast('Choose a .cad or .dxf file.', { kind: 'error' });
+      toast(t('Choose a .cad or .dxf file.'), { kind: 'error' });
       return null;
     }
     const existing = file.path && this.docs.find((d) => d.file?.path === file.path);
@@ -518,7 +520,7 @@ export class App {
       this.activate(existing);
       return existing;
     }
-    const busy = toast(`Opening ${name}...`, { timeout: 0 });
+    const busy = toast(t('Opening {name}...', { name }), { timeout: 0 });
     try {
       let drawing;
       if (kind === 'native') drawing = new Drawing(await decodeDrawing(buffer));
@@ -526,7 +528,7 @@ export class App {
         const res = await importDxf(buffer);
         drawing = new Drawing(res.drawing);
         const skipped = Object.entries(res.stats?.skipped || {});
-        if (skipped.length) this.cmdline.log(`Some objects were not imported: ${skipped.map(([t, n]) => `${n} ${t}`).join(', ')}.`, 'muted');
+        if (skipped.length) this.cmdline.log(t('Some objects were not imported: {list}.', { list: skipped.map(([ty, n]) => `${n} ${ty}`).join(', ') }), 'muted');
         for (const w of (res.warnings || []).slice(0, 5)) this.cmdline.log(w, 'muted');
       }
       busy.remove();
@@ -536,7 +538,7 @@ export class App {
       if (blank) this.closeDrawing(blank);
       this.zoomExtentsSoon();
       if (file.path) storage.addRecent({ name, path: file.path, source: file.source });
-      this.cmdline.log(`Opened ${name} (${drawing.entities.size.toLocaleString()} objects)`, 'muted');
+      this.cmdline.log(t('Opened {name} ({count} objects)', { name, count: drawing.entities.size.toLocaleString() }), 'muted');
       return doc;
     } catch (err) {
       busy.remove();
@@ -548,7 +550,7 @@ export class App {
   fileError(what, err) {
     console.error(err);
     const msg = err?.message || String(err);
-    toast(`Could not ${what} the file. ${msg}`, { kind: 'error', timeout: 7000 });
+    toast(t('Could not {action} the file. {msg}', { action: t(what), msg }), { kind: 'error', timeout: 7000 });
   }
 
   async encode(doc, kind) {
@@ -573,7 +575,7 @@ export class App {
       const blob = await this.encode(doc, kind);
       let downloaded = false;
       if (doc.file.source === 'cloud') {
-        if (!(await this.ensureSignedIn('save to your Puter drive'))) return false;
+        if (!(await this.ensureSignedIn(t('save to your Puter drive')))) return false;
         await storage.cloudWrite(doc.file.path, blob);
       } else {
         const r = await storage.deviceSave(blob, doc.file.name || `${doc.name}${kind === 'dxf' ? '.dxf' : NATIVE_EXT}`, doc.file.handle);
@@ -593,7 +595,7 @@ export class App {
     doc.drawing.markSaved(rev);
     this.refreshAll();
     this.autosave(doc);
-    toast(downloaded ? `Downloaded ${name}. Find it in your downloads folder.` : `Saved ${name}`, { kind: 'success' });
+    toast(downloaded ? t('Downloaded {name}. Find it in your downloads folder.', { name }) : t('Saved {name}', { name }), { kind: 'success' });
   }
 
   async saveAs(arg) {
@@ -626,7 +628,7 @@ export class App {
       const fileName = `${target.name}${target.kind === 'dxf' ? '.dxf' : NATIVE_EXT}`;
       let downloaded = false;
       if (target.source === 'cloud') {
-        if (!(await this.ensureSignedIn('save to your Puter drive'))) return false;
+        if (!(await this.ensureSignedIn(t('save to your Puter drive')))) return false;
         const path = `${storage.CLOUD_DIR}/${fileName}`;
         const same = !!doc.file?.path && (doc.file.path === path || doc.file.path.endsWith(`/${path}`));
         let item;
@@ -634,7 +636,7 @@ export class App {
           item = await storage.cloudWrite(path, blob, same);
         } catch (err) {
           if (!storage.isExistsError(err)) throw err;
-          const ok = await confirmDialog('Replace file?', `"${fileName}" already exists in your drive. Replace it?`, { confirm: 'Replace', danger: true });
+          const ok = await confirmDialog(t('Replace file?'), t('"{name}" already exists in your drive. Replace it?', { name: fileName }), { confirm: t('Replace'), danger: true });
           if (!ok) return false;
           item = await storage.cloudWrite(path, blob, true);
         }
@@ -692,7 +694,7 @@ export class App {
         await this.flushAutosave();
         const unsaved = this.docs.filter((d) => d.drawing.modified);
         if (unsaved.length && (!this.ownsSession || this.recoveryFailed)) {
-          const ok = await confirmDialog('Close with unsaved drawings?', `${unsaved.length} drawing${unsaved.length === 1 ? ' has' : 's have'} changes that are not saved and will be lost.`, { confirm: 'Close anyway', danger: true });
+          const ok = await confirmDialog(t('Close with unsaved drawings?'), t('{n} drawing{s} changes that are not saved and will be lost.', { n: unsaved.length, s: unsaved.length === 1 ? ' has' : 's have' }), { confirm: t('Close anyway'), danger: true });
           if (!ok) return;
         }
         puter.exit();
@@ -747,33 +749,33 @@ export class App {
           'button.btn.sm.signin',
           {
             type: 'button',
-            'aria-label': 'Sign in with Puter',
-            'data-tip': 'Sign in with Puter',
-            'data-tip-desc': 'Save drawings to your Puter drive and sync settings. Drawing works without an account.',
+            'aria-label': t('Sign in with Puter'),
+            'data-tip': t('Sign in with Puter'),
+            'data-tip-desc': t('Save drawings to your Puter drive and sync settings. Drawing works without an account.'),
             onClick: () => this.signIn(),
           },
           icon('log-in', 15),
-          h('span', 'Sign in'),
+          h('span', t('Sign in')),
         ),
       );
       return;
     }
-    const name = this.user?.username || 'Account';
+    const name = this.user?.username || t('Account');
     const pic = this.profilePic || platform.cachedProfilePicture(name);
     el.append(
       h(
         'button.avatar-btn',
-        { type: 'button', 'aria-label': `Account: ${name}`, 'aria-haspopup': 'menu', 'data-tip': name, onClick: (e) => this.accountMenu(e.currentTarget) },
+        { type: 'button', 'aria-label': t('Account: {name}', { name }), 'aria-haspopup': 'menu', 'data-tip': name, onClick: (e) => this.accountMenu(e.currentTarget) },
         pic ? h('img.avatar', { src: pic, alt: '' }) : h('span.avatar.initials', name.slice(0, 1).toUpperCase()),
       ),
     );
   }
 
   accountMenu(anchor) {
-    const items = [{ header: `Signed in as ${this.user?.username ?? ''}` }];
-    if (platform.canSignOut()) items.push({ label: 'Sign out', icon: 'log-out', action: () => this.signOut() });
-    else items.push({ label: 'Signed in through Puter', disabled: true });
-    showMenu(anchor, items, { alignRight: true, label: 'Account' });
+    const items = [{ header: t('Signed in as {name}', { name: this.user?.username ?? '' }) }];
+    if (platform.canSignOut()) items.push({ label: t('Sign out'), icon: 'log-out', action: () => this.signOut() });
+    else items.push({ label: t('Signed in through Puter'), disabled: true });
+    showMenu(anchor, items, { alignRight: true, label: t('Account') });
   }
 
   async signIn() {
@@ -782,14 +784,14 @@ export class App {
       this.signedIn = await platform.isSignedIn();
       if (this.signedIn) {
         await this.onSignedIn();
-        toast('Signed in. You can now save drawings to your Puter drive.', { kind: 'success' });
+        toast(t('Signed in. You can now save drawings to your Puter drive.'), { kind: 'success' });
       }
     } catch (err) {
       // Closing the sign-in window is a choice, not an error.
       const code = err?.error ?? err?.code ?? '';
       if (code !== 'auth_window_closed') {
         console.warn(err);
-        toast(code === 'popup_blocked' ? 'The sign-in window was blocked. Allow pop-ups for this site and try again.' : 'Could not sign in. Please try again.', { kind: 'error', timeout: 7000 });
+        toast(code === 'popup_blocked' ? t('The sign-in window was blocked. Allow pop-ups for this site and try again.') : t('Could not sign in. Please try again.'), { kind: 'error', timeout: 7000 });
       }
     }
     this.renderAccount();
@@ -805,12 +807,12 @@ export class App {
     this.user = null;
     this.profilePic = null;
     this.renderAccount();
-    toast('Signed out. Open drawings stay on this device.');
+    toast(t('Signed out. Open drawings stay on this device.'));
   }
 
   async ensureSignedIn(reason) {
     if (this.signedIn) return true;
-    const ok = await confirmDialog('Sign in to continue', `Sign in with Puter to ${reason}. Your drawings stay private to your account.`, { confirm: 'Sign in' });
+    const ok = await confirmDialog(t('Sign in to continue'), t('Sign in with Puter to {reason}. Your drawings stay private to your account.', { reason }), { confirm: t('Sign in') });
     if (!ok) return false;
     return this.signIn();
   }
@@ -826,8 +828,8 @@ export class App {
 
   toggleSetting(key) {
     this.setSetting(key, !this.settings[key]);
-    const labels = { grid: 'Grid', snap: 'Snap', ortho: 'Ortho', polar: 'Polar tracking', osnap: 'Object snap', otrack: 'Object snap tracking', dyn: 'Dynamic input', lwDisplay: 'Lineweight display' };
-    if (labels[key]) this.cmdline.log(`${labels[key]} ${this.settings[key] ? 'on' : 'off'}`, 'muted');
+    const labels = { grid: t('Grid'), snap: t('Snap'), ortho: t('Ortho'), polar: t('Polar tracking'), osnap: t('Object snap'), otrack: t('Object snap tracking'), dyn: t('Dynamic input'), lwDisplay: t('Lineweight display') };
+    if (labels[key]) this.cmdline.log(t('{label} {state}', { label: labels[key], state: this.settings[key] ? t('on') : t('off') }), 'muted');
     // Ortho and polar are mutually exclusive.
     if (key === 'ortho' && this.settings.ortho && this.settings.polar) this.setSetting('polar', false);
     if (key === 'polar' && this.settings.polar && this.settings.ortho) this.setSetting('ortho', false);
@@ -914,14 +916,26 @@ export class App {
     if (this.ribbon?.contextual) this.ribbon.renderBody();
     if (this.shell) {
       clear(this.shell.themeBtn).append(icon(this.themePref === 'light' ? 'sun' : this.themePref === 'dark' ? 'moon' : 'monitor', 17));
-      this.shell.themeBtn.dataset.tip = `Theme: ${this.themePref[0].toUpperCase()}${this.themePref.slice(1)}`;
+      this.shell.themeBtn.dataset.tip = t('Theme: {name}', { name: this.themePref[0].toUpperCase() + this.themePref.slice(1) });
     }
     this.ribbon?.refresh();
   }
 
   themeMenu(anchor) {
     const item = (v, label, ic) => ({ label, icon: ic, checked: this.themePref === v, radio: true, action: () => this.setTheme(v) });
-    showMenu(anchor, [item('system', 'System', 'monitor'), item('light', 'Light', 'sun'), item('dark', 'Dark', 'moon')], { label: 'Theme', alignRight: true });
+    showMenu(anchor, [item('system', t('System'), 'monitor'), item('light', t('Light'), 'sun'), item('dark', t('Dark'), 'moon')], { label: t('Theme'), alignRight: true });
+  }
+
+  /** Language picker; switching reloads so every label re-renders. */
+  languageMenu(anchor) {
+    const items = LOCALES.map((l) => ({ label: l.label, checked: getLocale() === l.id, radio: true, action: () => this.setLanguage(l.id) }));
+    showMenu(anchor, items, { label: t('Language'), alignRight: true });
+  }
+
+  setLanguage(id) {
+    if (id === getLocale()) return;
+    setLocale(id);
+    location.reload();
   }
 
   // Layout -----------------------------------------------------------------------------------
@@ -964,7 +978,7 @@ export class App {
   toggleCleanScreen() {
     const on = !document.body.classList.contains('clean-screen');
     document.body.classList.toggle('clean-screen', on);
-    this.cmdline.log(on ? 'Clean screen on. Press Ctrl+0 to restore the interface.' : 'Clean screen off', 'muted');
+    this.cmdline.log(on ? t('Clean screen on. Press Ctrl+0 to restore the interface.') : t('Clean screen off'), 'muted');
   }
 
   // Dock (palettes) ---------------------------------------------------------------------------
@@ -997,9 +1011,9 @@ export class App {
       s.dock.style.width = `${w}px`;
     });
     this.dockPanels = [
-      { id: 'properties', label: 'Properties', comp: this.properties },
-      { id: 'layers', label: 'Layers', comp: this.layers },
-      { id: 'blocks', label: 'Blocks', comp: this.blocks },
+      { id: 'properties', label: t('Properties'), comp: this.properties },
+      { id: 'layers', label: t('Layers'), comp: this.layers },
+      { id: 'blocks', label: t('Blocks'), comp: this.blocks },
     ];
     this.dockOpen = new Set(saved.open || []);
     this.dockActive = saved.active || null;
@@ -1025,7 +1039,7 @@ export class App {
             role: 'tab',
             'aria-selected': String(selected),
             tabindex: selected ? '0' : '-1',
-            title: `${p.label} (Delete closes it)`,
+            title: t('{label} (Delete closes it)', { label: p.label }),
             onClick: () => this.showDock(p.id),
             onKeydown: (e) => {
               if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
@@ -1120,8 +1134,8 @@ export class App {
       );
     }
     bar.append(
-      h('button.pb-btn.pb-cmd', { type: 'button', onClick: () => this.cmdline.submit() }, icon('check', 20), h('span', 'Enter')),
-      h('button.pb-btn.pb-cmd', { type: 'button', onClick: () => this.editor.cancel() }, icon('x', 20), h('span', 'Cancel')),
+      h('button.pb-btn.pb-cmd', { type: 'button', onClick: () => this.cmdline.submit() }, icon('check', 20), h('span', t('Enter'))),
+      h('button.pb-btn.pb-cmd', { type: 'button', onClick: () => this.editor.cancel() }, icon('x', 20), h('span', t('Cancel'))),
     );
   }
 
@@ -1145,14 +1159,14 @@ export class App {
     if (!d) return;
     if (this.editor.busy) this.editor.cancelAll();
     const label = d.undo();
-    this.cmdline.log(label ? `Undo ${label}` : 'Nothing to undo', 'muted');
+    this.cmdline.log(label ? t('Undo {label}', { label }) : t('Nothing to undo'), 'muted');
   }
 
   redo() {
     const d = this.doc?.drawing;
     if (!d) return;
     const label = d.redo();
-    this.cmdline.log(label ? `Redo ${label}` : 'Nothing to redo', 'muted');
+    this.cmdline.log(label ? t('Redo {label}', { label }) : t('Nothing to redo'), 'muted');
   }
 
   pushView() {
@@ -1163,7 +1177,7 @@ export class App {
 
   zoomPrevious() {
     const v = this.doc?.viewStack.pop();
-    if (!v) return this.cmdline.log('No previous view.', 'muted');
+    if (!v) return this.cmdline.log(t('No previous view.'), 'muted');
     this.camera.state = v;
     this.editor.viewChanged();
   }
@@ -1174,12 +1188,12 @@ export class App {
     if (!doc) return;
     const d = doc.drawing;
     if (doc.selection.size) {
-      d.transaction(`Change ${key}`, () => {
+      d.transaction(t('Change {key}', { key }), () => {
         for (const id of doc.selection) if (d.get(id)) d.update(id, { [key]: value });
       });
     } else {
       const map = { color: 'ccolor', linetype: 'cltype', lineweight: 'clweight', layer: 'clayer' };
-      d.transaction(`Current ${key}`, () => d.setHeader({ [map[key]]: value }));
+      d.transaction(t('Current {key}', { key }), () => d.setHeader({ [map[key]]: value }));
     }
     this.focusCanvas();
   }
@@ -1188,7 +1202,7 @@ export class App {
     const doc = this.doc;
     const d = doc.drawing;
     const ent = kind === 'dimStyle' ? 'dimension' : 'text';
-    d.transaction('Change style', () => {
+    d.transaction(t('Change style'), () => {
       d.setHeader({ [kind]: value });
       if (doc.selection.size) {
         for (const id of doc.selection) {
@@ -1203,8 +1217,8 @@ export class App {
   }
 
   async promptTextHeight() {
-    const v = await promptDialog('Text height', 'Height in drawing units', String(this.doc.drawing.header.textHeight), {
-      validate: (s) => (Number(s) > 0 ? null : 'Enter a number greater than zero.'),
+    const v = await promptDialog(t('Text height'), t('Height in drawing units'), String(this.doc.drawing.header.textHeight), {
+      validate: (s) => (Number(s) > 0 ? null : t('Enter a number greater than zero.')),
     });
     if (v) this.applyStyle('textHeight', Number(v));
   }
@@ -1213,7 +1227,7 @@ export class App {
     const d = this.doc.drawing;
     const l = d.layers.get(name);
     if (!l) return;
-    d.transaction('Set current layer', () => {
+    d.transaction(t('Set current layer'), () => {
       if (l.frozen) d.setTable('layers', name, { ...l, frozen: false });
       d.setHeader({ clayer: name });
     });
@@ -1224,19 +1238,19 @@ export class App {
     const l = d.layers.get(name);
     if (!l) return;
     if (patch.frozen && name === d.header.clayer) {
-      toast('The current layer cannot be frozen.', { kind: 'error' });
+      toast(t('The current layer cannot be frozen.'), { kind: 'error' });
       return;
     }
-    d.transaction('Layer properties', () => d.setTable('layers', name, { ...l, ...patch }));
+    d.transaction(t('Layer properties'), () => d.setTable('layers', name, { ...l, ...patch }));
   }
 
   /** Rename a layer everywhere. Returns an error message or null. */
   renameLayer(from, to) {
     const d = this.doc.drawing;
-    if (!/^[^<>/\\":;?*|=`]{1,255}$/.test(to)) return 'Layer names cannot contain < > / \\ " : ; ? * | = or `.';
-    if (d.layers.has(to)) return `A layer named "${to}" already exists.`;
+    if (!/^[^<>/\\":;?*|=`]{1,255}$/.test(to)) return t('Layer names cannot contain < > / \\ " : ; ? * | = or `.');
+    if (d.layers.has(to)) return t('A layer named "{name}" already exists.', { name: to });
     const l = d.layers.get(from);
-    d.transaction('Rename layer', () => {
+    d.transaction(t('Rename layer'), () => {
       d.setTable('layers', to, { ...l, name: to });
       for (const [id, e] of d.entities) if (e.layer === from) d.update(id, { layer: to });
       for (const b of d.blocks.values()) if (b.entities.some((e) => e.layer === from)) d.setBlock(b.name, { ...b, entities: b.entities.map((e) => (e.layer === from ? { ...e, layer: to } : e)) });
@@ -1256,7 +1270,7 @@ export class App {
     if (e.type === 'text' || e.type === 'mtext' || (e.type === 'leader' && e.text !== undefined)) {
       this.editor.run({
         name: 'TEXTEDIT',
-        label: 'Edit text',
+        label: t('Edit text'),
         noRepeat: true,
         run: async (ed) => {
           const key = e.type === 'leader' ? 'text' : 'value';
@@ -1264,7 +1278,7 @@ export class App {
           const pos = e.type === 'leader' ? { x: e.pts.at(-2), y: e.pts.at(-1) } : { x: e.x, y: e.y };
           const v = await ed.editText({ anchor: pos, height: e.h, rot: e.rot || 0, multiline: e.type === 'mtext', width: e.width, initial: e[key], onChange: (val) => ed.renderer.setPreview([{ ...e, [key]: val }]) });
           ed.renderer.setHidden(new Set());
-          if (v !== null && v !== e[key]) ed.commit('Edit text', () => (v ? ed.drawing.update(id, { [key]: v }) : ed.drawing.remove(id)));
+          if (v !== null && v !== e[key]) ed.commit(t('Edit text'), () => (v ? ed.drawing.update(id, { [key]: v }) : ed.drawing.remove(id)));
         },
       });
       return;
@@ -1280,7 +1294,7 @@ export class App {
       let handle;
       const req = {
         kind: 'text',
-        prompt: opts.multiline ? 'Type the text. Press Ctrl+Enter to finish.' : 'Type the text. Press Enter to finish.',
+        prompt: opts.multiline ? t('Type the text. Press Ctrl+Enter to finish.') : t('Type the text. Press Enter to finish.'),
         opts: {},
         options: [],
         resolve,
@@ -1311,7 +1325,7 @@ export class App {
   }
 
   contextMenu(x, y, items) {
-    if (items) return showMenu({ x, y }, items, { label: 'Context menu' });
+    if (items) return showMenu({ x, y }, items, { label: t('Context menu') });
     const sel = this.doc?.selection.size;
     const last = this.editor.lastCommand ? this.commands.get(this.editor.lastCommand) : null;
     const c = (name, extra = {}) => {
@@ -1319,73 +1333,73 @@ export class App {
       return { label: d.label, icon: d.icon, action: () => this.run(name), ...extra };
     };
     const list = [];
-    if (last) list.push({ label: `Repeat ${last.label}`, icon: last.icon, shortcut: 'Enter', action: () => this.run(last.name) });
+    if (last) list.push({ label: t('Repeat {label}', { label: last.label }), icon: last.icon, shortcut: 'Enter', action: () => this.run(last.name) });
     if (sel) {
       list.push({ separator: true }, c('ERASE', { shortcut: 'Del' }), c('MOVE'), c('COPY'), c('SCALE'), c('ROTATE'), c('MIRROR'));
       list.push({ separator: true }, c('CUTCLIP', { shortcut: `${MOD}+X` }), c('COPYCLIP', { shortcut: `${MOD}+C` }), c('COPYBASE'));
       list.push(
         { separator: true },
-        { label: 'Draw order', icon: 'draw-order', submenu: [{ label: 'Bring to front', action: () => this.run('DRAWORDER', { where: 'front' }) }, { label: 'Send to back', action: () => this.run('DRAWORDER', { where: 'back' }) }] },
+        { label: t('Draw order'), icon: 'draw-order', submenu: [{ label: t('Bring to front'), action: () => this.run('DRAWORDER', { where: 'front' }) }, { label: t('Send to back'), action: () => this.run('DRAWORDER', { where: 'back' }) }] },
         c('SELECTSIMILAR'),
-        { label: 'Deselect all', action: () => this.editor.clearSelection(), shortcut: 'Esc' },
+        { label: t('Deselect all'), action: () => this.editor.clearSelection(), shortcut: 'Esc' },
         { separator: true },
-        { label: 'Properties', icon: 'sliders', shortcut: `${MOD}+1`, action: () => this.showDock('properties') },
+        { label: t('Properties'), icon: 'sliders', shortcut: `${MOD}+1`, action: () => this.showDock('properties') },
       );
     } else {
       list.push(
         { separator: true },
-        { label: 'Undo', icon: 'undo', shortcut: `${MOD}+Z`, disabled: !this.doc?.drawing.canUndo, action: () => this.undo() },
-        { label: 'Redo', icon: 'redo', shortcut: `${MOD}+Y`, disabled: !this.doc?.drawing.canRedo, action: () => this.redo() },
+        { label: t('Undo'), icon: 'undo', shortcut: `${MOD}+Z`, disabled: !this.doc?.drawing.canUndo, action: () => this.undo() },
+        { label: t('Redo'), icon: 'redo', shortcut: `${MOD}+Y`, disabled: !this.doc?.drawing.canRedo, action: () => this.redo() },
         { separator: true },
         c('PASTECLIP', { shortcut: `${MOD}+V` }),
         c('SELECTALL', { shortcut: `${MOD}+A` }),
         c('QSELECT'),
         { separator: true },
-        { label: 'Pan', icon: 'pan', action: () => this.run('PAN') },
-        { label: 'Zoom extents', icon: 'zoom-extents', action: () => this.editor.zoomExtents() },
+        { label: t('Pan'), icon: 'pan', action: () => this.run('PAN') },
+        { label: t('Zoom extents'), icon: 'zoom-extents', action: () => this.editor.zoomExtents() },
         { separator: true },
-        { label: 'Settings', icon: 'settings', action: () => this.run('OPTIONS') },
+        { label: t('Settings'), icon: 'settings', action: () => this.run('OPTIONS') },
       );
     }
-    showMenu({ x, y }, list, { label: 'Context menu' });
+    showMenu({ x, y }, list, { label: t('Context menu') });
   }
 
   appMenu(anchor) {
     const recent = storage.recentFiles();
     const items = [
-      { label: 'New', icon: 'file-plus', shortcut: `${MOD}+N`, action: () => this.run('NEW') },
-      { label: 'Open...', icon: 'folder-open', shortcut: `${MOD}+O`, action: () => this.run('OPEN') },
-      { label: 'Open sample drawing', icon: 'file-text', action: () => this.openSample() },
+      { label: t('New'), icon: 'file-plus', shortcut: `${MOD}+N`, action: () => this.run('NEW') },
+      { label: t('Open...'), icon: 'folder-open', shortcut: `${MOD}+O`, action: () => this.run('OPEN') },
+      { label: t('Open sample drawing'), icon: 'file-text', action: () => this.openSample() },
       recent.length
         ? {
-            label: 'Recent',
+            label: t('Recent'),
             icon: 'history',
             submenu: recent.map((r) => ({ label: r.name, icon: r.source === 'cloud' ? 'cloud' : 'file', action: () => this.openRecent(r) })),
           }
         : null,
-      { label: 'Save', icon: 'save', shortcut: `${MOD}+S`, action: () => this.run('SAVE') },
-      { label: 'Save as...', icon: 'save-all', shortcut: `${MOD}+Shift+S`, action: () => this.run('SAVEAS') },
+      { label: t('Save'), icon: 'save', shortcut: `${MOD}+S`, action: () => this.run('SAVE') },
+      { label: t('Save as...'), icon: 'save-all', shortcut: `${MOD}+Shift+S`, action: () => this.run('SAVEAS') },
       { separator: true },
-      { label: 'Import DXF...', icon: 'upload', action: () => this.run('IMPORT') },
-      { label: 'Export...', icon: 'download', action: () => this.run('EXPORT') },
-      { label: 'Plot...', icon: 'printer', shortcut: `${MOD}+P`, action: () => this.run('PLOT') },
+      { label: t('Import DXF...'), icon: 'upload', action: () => this.run('IMPORT') },
+      { label: t('Export...'), icon: 'download', action: () => this.run('EXPORT') },
+      { label: t('Plot...'), icon: 'printer', shortcut: `${MOD}+P`, action: () => this.run('PLOT') },
       { separator: true },
-      { label: 'Drawing units...', icon: 'units', action: () => this.run('UNITS') },
-      { label: 'Purge unused...', icon: 'trash', action: () => this.run('PURGE') },
-      { label: 'Settings...', icon: 'settings', action: () => this.run('OPTIONS') },
+      { label: t('Drawing units...'), icon: 'units', action: () => this.run('UNITS') },
+      { label: t('Purge unused...'), icon: 'trash', action: () => this.run('PURGE') },
+      { label: t('Settings...'), icon: 'settings', action: () => this.run('OPTIONS') },
       { separator: true },
-      { label: 'Keyboard shortcuts', icon: 'keyboard', action: () => this.shortcuts() },
-      { label: 'Help', icon: 'help', shortcut: 'F1', action: () => this.help() },
-      { label: 'Source code on GitHub', icon: 'github', action: () => window.open(REPO_URL, '_blank', 'noopener') },
+      { label: t('Keyboard shortcuts'), icon: 'keyboard', action: () => this.shortcuts() },
+      { label: t('Help'), icon: 'help', shortcut: 'F1', action: () => this.help() },
+      { label: t('Source code on GitHub'), icon: 'github', action: () => window.open(REPO_URL, '_blank', 'noopener') },
       { separator: true },
-      { label: 'Close drawing', icon: 'x', action: () => this.closeDrawing() },
+      { label: t('Close drawing'), icon: 'x', action: () => this.closeDrawing() },
     ];
-    showMenu(anchor, items, { label: 'Application menu' });
+    showMenu(anchor, items, { label: t('Application menu') });
   }
 
   async openRecent(r) {
     if (r.source === 'cloud') {
-      if (!(await this.ensureSignedIn('open files from your Puter drive'))) return;
+      if (!(await this.ensureSignedIn(t('open files from your Puter drive')))) return;
       try {
         await this.openBuffer(await storage.cloudRead(r.path), r.name, { source: 'cloud', path: r.path });
       } catch (err) {
@@ -1434,8 +1448,8 @@ export class App {
   }
   async ltscalePrompt() {
     const d = this.doc.drawing;
-    const v = await this.editor.getNumber('Global linetype scale', { default: d.header.ltscale, min: 1e-6 });
-    if (Number.isFinite(v) && v > 0) d.transaction('Linetype scale', () => d.setHeader({ ltscale: v }));
+    const v = await this.editor.getNumber(t('Global linetype scale'), { default: d.header.ltscale, min: 1e-6 });
+    if (Number.isFinite(v) && v > 0) d.transaction(t('Linetype scale'), () => d.setHeader({ ltscale: v }));
   }
 
   // Keyboard ------------------------------------------------------------------------------
@@ -1449,9 +1463,9 @@ export class App {
 
   onKey(e) {
     if (e.key === 'Shift') this.editor.shiftDown = true;
-    const t = e.target;
-    const inCmd = t === this.cmdline.input;
-    const typing = !inCmd && t instanceof HTMLElement && (t.matches('input, textarea, select, [contenteditable]') || t.closest('dialog, .menu, .text-editor'));
+    const target = e.target;
+    const inCmd = target === this.cmdline.input;
+    const typing = !inCmd && target instanceof HTMLElement && (target.matches('input, textarea, select, [contenteditable]') || target.closest('dialog, .menu, .text-editor'));
     if (document.querySelector('dialog[open]')) return;
     if (typing) return;
     const mod = e.ctrlKey || e.metaKey;
@@ -1501,13 +1515,13 @@ export class App {
       this.run('ERASE');
       return;
     }
-    const onCanvas = t === document.body || t === this.shell.overlay;
+    const onCanvas = target === document.body || target === this.shell.overlay;
     if ((e.key === 'Enter' || (e.key === ' ' && this.editor.spaceSubmits)) && onCanvas) {
       e.preventDefault();
       this.cmdline.submit();
       return;
     }
-    if (t === this.shell.overlay && !e.altKey && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+    if (target === this.shell.overlay && !e.altKey && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
       e.preventDefault();
       const step = e.shiftKey ? 200 : 60;
       const dx = e.key === 'ArrowLeft' ? step : e.key === 'ArrowRight' ? -step : 0;
@@ -1518,8 +1532,8 @@ export class App {
     }
     // AltGr (Ctrl+Alt on Windows) types characters such as @ on many layouts.
     const altGr = e.getModifierState?.('AltGraph');
-    if (e.key.length === 1 && (!e.altKey || altGr) && (t === document.body || t === this.shell.overlay || t.closest?.('.canvas-wrap, .ribbon, .statusbar, .titlebar, .docbar'))) {
-      if (t instanceof HTMLButtonElement && e.key === ' ') return;
+    if (e.key.length === 1 && (!e.altKey || altGr) && (target === document.body || target === this.shell.overlay || target.closest?.('.canvas-wrap, .ribbon, .statusbar, .titlebar, .docbar'))) {
+      if (target instanceof HTMLButtonElement && e.key === ' ') return;
       e.preventDefault();
       this.cmdline.type(e.key);
     }
@@ -1547,8 +1561,8 @@ function saveJSON(key, value) {
 
 function loadTheme() {
   try {
-    const t = localStorage.getItem(THEME_KEY);
-    return t === 'light' || t === 'dark' ? t : 'system';
+    const stored = localStorage.getItem(THEME_KEY);
+    return stored === 'light' || stored === 'dark' ? stored : 'system';
   } catch {
     return 'system';
   }

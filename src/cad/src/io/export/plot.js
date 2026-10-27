@@ -8,26 +8,27 @@
  * matrices [a, b, c, d, e, f]: X = a*x + c*y + e, Y = b*x + d*y + f.
  */
 import { UNIT_MM, DEFAULT_LINEWEIGHT } from '../../core/schema.js';
+import { t } from '../../i18n/index.js';
 
 /** Standard paper sizes in millimetres, portrait (w <= h). */
 export const PAPER_SIZES = [
-  { id: 'A0', label: 'ISO A0', w: 841, h: 1189 },
-  { id: 'A1', label: 'ISO A1', w: 594, h: 841 },
-  { id: 'A2', label: 'ISO A2', w: 420, h: 594 },
-  { id: 'A3', label: 'ISO A3', w: 297, h: 420 },
-  { id: 'A4', label: 'ISO A4', w: 210, h: 297 },
-  { id: 'ANSI-A', label: 'ANSI A (Letter)', w: 215.9, h: 279.4 },
-  { id: 'ANSI-B', label: 'ANSI B', w: 279.4, h: 431.8 },
-  { id: 'ANSI-C', label: 'ANSI C', w: 431.8, h: 558.8 },
-  { id: 'ANSI-D', label: 'ANSI D', w: 558.8, h: 863.6 },
-  { id: 'ANSI-E', label: 'ANSI E', w: 863.6, h: 1117.6 },
-  { id: 'ARCH-A', label: 'Arch A', w: 228.6, h: 304.8 },
-  { id: 'ARCH-B', label: 'Arch B', w: 304.8, h: 457.2 },
-  { id: 'ARCH-C', label: 'Arch C', w: 457.2, h: 609.6 },
-  { id: 'ARCH-D', label: 'Arch D', w: 609.6, h: 914.4 },
-  { id: 'ARCH-E', label: 'Arch E', w: 914.4, h: 1219.2 },
-  { id: 'LEGAL', label: 'Legal', w: 215.9, h: 355.6 },
-  { id: 'TABLOID', label: 'Tabloid', w: 279.4, h: 431.8 },
+  { id: 'A0', label: t('ISO A0'), w: 841, h: 1189 },
+  { id: 'A1', label: t('ISO A1'), w: 594, h: 841 },
+  { id: 'A2', label: t('ISO A2'), w: 420, h: 594 },
+  { id: 'A3', label: t('ISO A3'), w: 297, h: 420 },
+  { id: 'A4', label: t('ISO A4'), w: 210, h: 297 },
+  { id: 'ANSI-A', label: t('ANSI A (Letter)'), w: 215.9, h: 279.4 },
+  { id: 'ANSI-B', label: t('ANSI B'), w: 279.4, h: 431.8 },
+  { id: 'ANSI-C', label: t('ANSI C'), w: 431.8, h: 558.8 },
+  { id: 'ANSI-D', label: t('ANSI D'), w: 558.8, h: 863.6 },
+  { id: 'ANSI-E', label: t('ANSI E'), w: 863.6, h: 1117.6 },
+  { id: 'ARCH-A', label: t('Arch A'), w: 228.6, h: 304.8 },
+  { id: 'ARCH-B', label: t('Arch B'), w: 304.8, h: 457.2 },
+  { id: 'ARCH-C', label: t('Arch C'), w: 457.2, h: 609.6 },
+  { id: 'ARCH-D', label: t('Arch D'), w: 609.6, h: 914.4 },
+  { id: 'ARCH-E', label: t('Arch E'), w: 914.4, h: 1219.2 },
+  { id: 'LEGAL', label: t('Legal'), w: 215.9, h: 355.6 },
+  { id: 'TABLOID', label: t('Tabloid'), w: 279.4, h: 431.8 },
 ];
 
 const PAPER_ALIASES = { LETTER: 'ANSI-A', LEDGER: 'TABLOID' };

@@ -2,6 +2,7 @@
  * View, inquiry, block, layer and clipboard commands.
  */
 import { opts } from '../input.js';
+import { t } from '../../i18n/index.js';
 import { transformEntity, lengthOf, areaOf } from '../../core/geom/index.js';
 import { formatLinear, formatAngle } from '../../core/units.js';
 import { M, dist, angleOf, norm, fresh } from './util.js';
@@ -11,7 +12,7 @@ import { M, dist, angleOf, norm, fresh } from './util.js';
 export const ZOOM = {
   name: 'ZOOM',
   aliases: ['Z'],
-  label: 'Zoom',
+  label: t('Zoom'),
   icon: 'zoom-window',
   transparent: true,
   noRepeat: false,
@@ -19,7 +20,7 @@ export const ZOOM = {
     const how =
       args?.mode ??
       (await ed.getKeyword(
-        'Zoom',
+        t('Zoom'),
         [
           { key: 'E', label: 'Extents', value: 'extents' },
           { key: 'W', label: 'Window', value: 'window' },
@@ -35,9 +36,9 @@ export const ZOOM = {
     if (how === 'in') return ed.zoomBy(2);
     if (how === 'out') return ed.zoomBy(0.5);
     if (how === 'previous') return ed.app?.zoomPrevious();
-    const a = await ed.getPoint('First corner of zoom window', { noSnap: true });
+    const a = await ed.getPoint(t('First corner of zoom window'), { noSnap: true });
     if (!a || a.option) return;
-    const b = await ed.getPoint('Opposite corner', {
+    const b = await ed.getPoint(t('Opposite corner'), {
       noSnap: true,
       rubber: false,
       onMove: (p) => {
@@ -57,14 +58,14 @@ export const ZOOM = {
 export const PAN = {
   name: 'PAN',
   aliases: ['P'],
-  label: 'Pan',
+  label: t('Pan'),
   icon: 'pan',
   transparent: true,
   async run(ed) {
     ed.panTool = true;
     ed.el.classList.add('pan-tool');
     try {
-      await ed.getPoint('Drag to pan. Press Esc or Enter to exit.', { noSnap: true, rubber: false });
+      await ed.getPoint(t('Drag to pan. Press Esc or Enter to exit.'), { noSnap: true, rubber: false });
     } finally {
       ed.panTool = false;
       ed.el.classList.remove('pan-tool');
@@ -72,39 +73,44 @@ export const PAN = {
   },
 };
 
-export const ZOOMEXTENTS = { name: 'ZOOMEXTENTS', aliases: ['ZE'], label: 'Zoom extents', icon: 'zoom-extents', noRepeat: true, transparent: true, run: (ed) => ed.zoomExtents() };
-export const REGEN = { name: 'REGEN', aliases: ['RE', 'REGENALL'], label: 'Regenerate', icon: 'regen', transparent: true, run: (ed) => ed.renderer.rebuildAll() };
+export const ZOOMEXTENTS = { name: 'ZOOMEXTENTS', aliases: ['ZE'], label: t('Zoom extents'), icon: 'zoom-extents', noRepeat: true, transparent: true, run: (ed) => ed.zoomExtents() };
+export const REGEN = { name: 'REGEN', aliases: ['RE', 'REGENALL'], label: t('Regenerate'), icon: 'regen', transparent: true, run: (ed) => ed.renderer.rebuildAll() };
 
 // Inquiry ---------------------------------------------------------------------
 
 export const DIST = {
   name: 'DIST',
   aliases: ['DI'],
-  label: 'Measure distance',
+  label: t('Measure distance'),
   icon: 'measure-dist',
   async run(ed) {
-    const a = await ed.getPoint('First point');
+    const a = await ed.getPoint(t('First point'));
     if (!a || a.option) return;
-    const b = await ed.getPoint('Second point', { base: a });
+    const b = await ed.getPoint(t('Second point'), { base: a });
     if (!b || b.option) return;
     const h = ed.header;
-    const msg = `Distance = ${formatLinear(dist(a, b), h)},  Angle = ${formatAngle(norm(angleOf(a, b)), h, { symbol: true })},  Delta X = ${formatLinear(b.x - a.x, h)},  Delta Y = ${formatLinear(b.y - a.y, h)}`;
+    const msg = t('Distance = {distance},  Angle = {angle},  Delta X = {dx},  Delta Y = {dy}', {
+      distance: formatLinear(dist(a, b), h),
+      angle: formatAngle(norm(angleOf(a, b)), h, { symbol: true }),
+      dx: formatLinear(b.x - a.x, h),
+      dy: formatLinear(b.y - a.y, h),
+    });
     ed.ui.log(msg, 'result');
-    ed.ui.toast?.(`Distance ${formatLinear(dist(a, b), h)}`);
+    ed.ui.toast?.(t('Distance {distance}', { distance: formatLinear(dist(a, b), h) }));
   },
 };
 
 export const AREA = {
   name: 'AREA',
   aliases: ['AA'],
-  label: 'Measure area',
+  label: t('Measure area'),
   icon: 'measure-area',
   async run(ed) {
-    const first = await ed.getPoint('First corner point', { options: opts('Object') });
+    const first = await ed.getPoint(t('First corner point'), { options: opts('Object') });
     if (!first) return;
     const h = ed.header;
     if (first.option === 'object') {
-      const pick = await ed.getEntity('Select object', { filter: (e) => ['circle', 'polyline', 'ellipse', 'spline', 'hatch', 'arc'].includes(e.type) });
+      const pick = await ed.getEntity(t('Select object'), { filter: (e) => ['circle', 'polyline', 'ellipse', 'spline', 'hatch', 'arc'].includes(e.type) });
       if (!pick || pick.option) return;
       let a = 0,
         p = 0;
@@ -114,8 +120,8 @@ export const AREA = {
       } catch {
         /* unsupported */
       }
-      ed.ui.log(`Area = ${formatArea(a, h)},  Perimeter = ${formatLinear(p, h)}`, 'result');
-      ed.ui.toast?.(`Area ${formatArea(a, h)}`);
+      ed.ui.log(t('Area = {area},  Perimeter = {perimeter}', { area: formatArea(a, h), perimeter: formatLinear(p, h) }), 'result');
+      ed.ui.toast?.(t('Area {area}', { area: formatArea(a, h) }));
       return;
     }
     const pts = [first];
@@ -126,7 +132,7 @@ export const AREA = {
       return ed.make('polyline', { pts: flat, closed: true, width: 0, color: 3 });
     };
     for (;;) {
-      const q = await ed.getPoint('Next point (Enter for total)', { base: pts.at(-1), preview: (c) => [poly(c)] });
+      const q = await ed.getPoint(t('Next point (Enter for total)'), { base: pts.at(-1), preview: (c) => [poly(c)] });
       if (!q) break;
       if (q.option) return;
       pts.push(q);
@@ -141,22 +147,22 @@ export const AREA = {
       per += dist(p1, p2);
     }
     a = Math.abs(a) / 2;
-    ed.ui.log(`Area = ${formatArea(a, h)},  Perimeter = ${formatLinear(per, h)}`, 'result');
-    ed.ui.toast?.(`Area ${formatArea(a, h)}`);
+    ed.ui.log(t('Area = {area},  Perimeter = {perimeter}', { area: formatArea(a, h), perimeter: formatLinear(per, h) }), 'result');
+    ed.ui.toast?.(t('Area {area}', { area: formatArea(a, h) }));
   },
 };
 
 function formatArea(a, h) {
   const prec = Math.max(0, h.linearPrecision ?? 4);
-  return `${a.toFixed(prec)} sq ${h.units === 'unitless' ? 'units' : h.units}`;
+  return t('{value} sq {unit}', { value: a.toFixed(prec), unit: h.units === 'unitless' ? 'units' : h.units });
 }
 
 export const ID = {
   name: 'ID',
-  label: 'Point coordinates',
+  label: t('Point coordinates'),
   icon: 'id-point',
   async run(ed) {
-    const p = await ed.getPoint('Point');
+    const p = await ed.getPoint(t('Point'));
     if (!p || p.option) return;
     ed.ui.log(`X = ${formatLinear(p.x, ed.header)}   Y = ${formatLinear(p.y, ed.header)}`, 'result');
   },
@@ -165,27 +171,27 @@ export const ID = {
 export const LIST = {
   name: 'LIST',
   aliases: ['LI', 'LS'],
-  label: 'List',
+  label: t('List'),
   icon: 'list',
   async run(ed) {
     const ids = await ed.getSelection();
     const h = ed.header;
     for (const id of ids.slice(0, 50)) {
       const e = ed.drawing.get(id);
-      const parts = [`${e.type.toUpperCase()}  Layer: ${e.layer}`];
-      if (e.type === 'line') parts.push(`from ${fmtP(e.x1, e.y1, h)} to ${fmtP(e.x2, e.y2, h)}, length ${formatLinear(Math.hypot(e.x2 - e.x1, e.y2 - e.y1), h)}`);
-      else if (e.type === 'circle') parts.push(`center ${fmtP(e.cx, e.cy, h)}, radius ${formatLinear(e.r, h)}`);
-      else if (e.type === 'arc') parts.push(`center ${fmtP(e.cx, e.cy, h)}, radius ${formatLinear(e.r, h)}`);
-      else if (e.x !== undefined) parts.push(`at ${fmtP(e.x, e.y, h)}`);
+      const parts = [t('{type}  Layer: {layer}', { type: e.type.toUpperCase(), layer: e.layer })];
+      if (e.type === 'line') parts.push(t('from {start} to {end}, length {length}', { start: fmtP(e.x1, e.y1, h), end: fmtP(e.x2, e.y2, h), length: formatLinear(Math.hypot(e.x2 - e.x1, e.y2 - e.y1), h) }));
+      else if (e.type === 'circle') parts.push(t('center {center}, radius {radius}', { center: fmtP(e.cx, e.cy, h), radius: formatLinear(e.r, h) }));
+      else if (e.type === 'arc') parts.push(t('center {center}, radius {radius}', { center: fmtP(e.cx, e.cy, h), radius: formatLinear(e.r, h) }));
+      else if (e.x !== undefined) parts.push(t('at {point}', { point: fmtP(e.x, e.y, h) }));
       try {
         const L = lengthOf(e);
-        if (L && e.type !== 'line') parts.push(`length ${formatLinear(L, h)}`);
+        if (L && e.type !== 'line') parts.push(t('length {length}', { length: formatLinear(L, h) }));
       } catch {
         /* no length */
       }
       ed.ui.log(parts.join('  '), 'result');
     }
-    if (ids.length > 50) ed.ui.log(`and ${ids.length - 50} more`, 'muted');
+    if (ids.length > 50) ed.ui.log(t('and {n} more', { n: ids.length - 50 }), 'muted');
     ed.clearSelection();
   },
 };
@@ -197,41 +203,41 @@ const fmtP = (x, y, h) => `(${formatLinear(x, h)}, ${formatLinear(y, h)})`;
 export const BLOCK = {
   name: 'BLOCK',
   aliases: ['B'],
-  label: 'Create block',
+  label: t('Create block'),
   icon: 'block-create',
   async run(ed) {
-    const ids = await ed.getSelection('Select objects for the block');
+    const ids = await ed.getSelection(t('Select objects for the block'));
     if (!ids.length) return;
     let name;
     for (;;) {
-      name = (await ed.getString('Block name', { spaces: true })).trim();
+      name = (await ed.getString(t('Block name'), { spaces: true })).trim();
       if (!name) return;
       if (/[<>/\\":;?*|=`]/.test(name)) {
-        ed.ui.log('Block names cannot contain < > / \\ " : ; ? * | = or `.', 'error');
+        ed.ui.log(t('Block names cannot contain < > / \\ " : ; ? * | = or `.'), 'error');
         continue;
       }
       if (ed.drawing.blocks.has(name)) {
-        const r = await ed.getKeyword(`A block named "${name}" exists. Redefine it?`, opts('Yes', 'No'), 'no');
+        const r = await ed.getKeyword(t('A block named "{name}" exists. Redefine it?', { name }), opts('Yes', 'No'), 'no');
         if (r !== 'yes') continue;
       }
       break;
     }
     ed.setSelection(ids);
-    const base = await ed.getPoint('Base point');
+    const base = await ed.getPoint(t('Base point'));
     if (!base || base.option) return;
     const ents = ids.map((id) => ed.drawing.get(id)).filter(Boolean);
     if (ents.some((e) => e.type === 'insert' && (e.name === name || refersTo(ed.drawing, e.name, name)))) {
-      ed.ui.log('A block cannot contain a reference to itself.', 'error');
+      ed.ui.log(t('A block cannot contain a reference to itself.'), 'error');
       return;
     }
     const local = ents.map((e, i) => ({ ...e, id: i + 1 }));
-    ed.commit('Create block', () => {
+    ed.commit(t('Create block'), () => {
       ed.drawing.setBlock(name, { name, bx: base.x, by: base.y, entities: local, description: '' });
       for (const id of ids) ed.drawing.remove(id);
       ed.drawing.add(ed.make('insert', { name, x: base.x, y: base.y, sx: 1, sy: 1, rot: 0 }));
     });
     ed.clearSelection();
-    ed.ui.log(`Block "${name}" created from ${ids.length} object${ids.length === 1 ? '' : 's'}.`, 'muted');
+    ed.ui.log(t('Block "{name}" created from {n} object{s}.', { name, n: ids.length, s: ids.length === 1 ? '' : 's' }), 'muted');
   },
 };
 
@@ -244,41 +250,41 @@ function refersTo(drawing, name, target, depth = 0) {
 export const INSERT = {
   name: 'INSERT',
   aliases: ['I'],
-  label: 'Insert block',
+  label: t('Insert block'),
   icon: 'block-insert',
   async run(ed, args) {
     let name = args?.name;
     if (!name) {
       const names = [...ed.drawing.blocks.keys()].filter((n) => !n.startsWith('*'));
       if (!names.length) {
-        ed.ui.log('This drawing has no blocks yet. Use Create block first.', 'error');
+        ed.ui.log(t('This drawing has no blocks yet. Use Create block first.'), 'error');
         return;
       }
       if (ed.ui.chooseBlock) name = await ed.ui.chooseBlock();
-      else name = await ed.getString(`Block name (${names.slice(0, 10).join(', ')})`, { spaces: true });
+      else name = await ed.getString(t('Block name ({names})', { names: names.slice(0, 10).join(', ') }), { spaces: true });
       if (!name) return;
     }
     if (!ed.drawing.blocks.has(name)) {
-      ed.ui.log(`There is no block named "${name}".`, 'error');
+      ed.ui.log(t('There is no block named "{name}".', { name }), 'error');
       return;
     }
     let sx = 1,
       rot = 0;
     for (;;) {
       const mk = (p) => ed.make('insert', { name, x: p.x, y: p.y, sx, sy: sx, rot });
-      const p = await ed.getPoint('Insertion point', { options: opts('Scale', 'Rotate'), preview: (c) => [mk(c)] });
+      const p = await ed.getPoint(t('Insertion point'), { options: opts('Scale', 'Rotate'), preview: (c) => [mk(c)] });
       if (!p) return;
       if (p.option === 'scale') {
-        const k = await ed.getNumber('Scale factor', { default: sx });
+        const k = await ed.getNumber(t('Scale factor'), { default: sx });
         if (Number.isFinite(k) && k !== 0) sx = k;
         continue;
       }
       if (p.option === 'rotate') {
-        const a = await ed.getAngle('Rotation angle', { default: rot });
+        const a = await ed.getAngle(t('Rotation angle'), { default: rot });
         if (typeof a === 'number') rot = a;
         continue;
       }
-      ed.commit('Insert block', () => ed.drawing.add(mk(p)));
+      ed.commit(t('Insert block'), () => ed.drawing.add(mk(p)));
       if (!args?.repeat) return;
     }
   },
@@ -288,7 +294,7 @@ export const INSERT = {
 
 async function pickLayerAction(ed, label, fn) {
   for (;;) {
-    const pick = await ed.getEntity(`${label} (select an object on the layer, Enter to finish)`);
+    const pick = await ed.getEntity(t('{label} (select an object on the layer, Enter to finish)', { label }));
     if (!pick || pick.option) return;
     fn(pick.ent.layer);
   }
@@ -296,26 +302,26 @@ async function pickLayerAction(ed, label, fn) {
 
 export const LAYMCUR = {
   name: 'LAYMCUR',
-  label: 'Make object layer current',
+  label: t('Make object layer current'),
   icon: 'layer-current',
   async run(ed) {
-    const pick = ed.selection.size === 1 ? { ent: ed.drawing.get([...ed.selection][0]) } : await ed.getEntity('Select object whose layer will become current');
+    const pick = ed.selection.size === 1 ? { ent: ed.drawing.get([...ed.selection][0]) } : await ed.getEntity(t('Select object whose layer will become current'));
     if (!pick || pick.option) return;
-    ed.commit('Set current layer', () => ed.drawing.setHeader({ clayer: pick.ent.layer }));
-    ed.ui.log(`Current layer is now "${pick.ent.layer}".`, 'muted');
+    ed.commit(t('Set current layer'), () => ed.drawing.setHeader({ clayer: pick.ent.layer }));
+    ed.ui.log(t('Current layer is now "{layer}".', { layer: pick.ent.layer }), 'muted');
   },
 };
 
 export const LAYMATCH = {
   name: 'LAYMATCH',
-  label: 'Match layer',
+  label: t('Match layer'),
   icon: 'layer-match',
   async run(ed) {
-    const ids = await ed.getSelection('Select objects to change');
+    const ids = await ed.getSelection(t('Select objects to change'));
     if (!ids.length) return;
-    const t = await ed.getEntity('Select object on destination layer');
-    if (!t || t.option) return;
-    ed.commit('Match layer', () => ids.forEach((id) => ed.drawing.update(id, { layer: t.ent.layer })));
+    const dst = await ed.getEntity(t('Select object on destination layer'));
+    if (!dst || dst.option) return;
+    ed.commit(t('Match layer'), () => ids.forEach((id) => ed.drawing.update(id, { layer: dst.ent.layer })));
     ed.clearSelection();
   },
 };
@@ -323,63 +329,63 @@ export const LAYMATCH = {
 const setLayer = (ed, name, patch, label) => {
   const l = ed.drawing.layers.get(name);
   if (!l) return;
-  if (patch.on === false && name === ed.header.clayer) ed.ui.log('The current layer was turned off.', 'muted');
+  if (patch.on === false && name === ed.header.clayer) ed.ui.log(t('The current layer was turned off.'), 'muted');
   ed.commit(label, () => ed.drawing.setTable('layers', name, { ...l, ...patch }));
 };
 
-export const LAYOFF = { name: 'LAYOFF', label: 'Turn layer off', icon: 'layer-off', run: (ed) => pickLayerAction(ed, 'Turn off layer', (n) => setLayer(ed, n, { on: false }, 'Layer off')) };
+export const LAYOFF = { name: 'LAYOFF', label: t('Turn layer off'), icon: 'layer-off', run: (ed) => pickLayerAction(ed, t('Turn off layer'), (n) => setLayer(ed, n, { on: false }, t('Layer off'))) };
 export const LAYFRZ = {
   name: 'LAYFRZ',
-  label: 'Freeze layer',
+  label: t('Freeze layer'),
   icon: 'layer-freeze',
   run: (ed) =>
-    pickLayerAction(ed, 'Freeze layer', (n) => {
-      if (n === ed.header.clayer) return ed.ui.log('The current layer cannot be frozen.', 'error');
-      setLayer(ed, n, { frozen: true }, 'Layer freeze');
+    pickLayerAction(ed, t('Freeze layer'), (n) => {
+      if (n === ed.header.clayer) return ed.ui.log(t('The current layer cannot be frozen.'), 'error');
+      setLayer(ed, n, { frozen: true }, t('Layer freeze'));
     }),
 };
-export const LAYLCK = { name: 'LAYLCK', label: 'Lock layer', icon: 'layer-lock', run: (ed) => pickLayerAction(ed, 'Lock layer', (n) => setLayer(ed, n, { locked: true }, 'Layer lock')) };
+export const LAYLCK = { name: 'LAYLCK', label: t('Lock layer'), icon: 'layer-lock', run: (ed) => pickLayerAction(ed, t('Lock layer'), (n) => setLayer(ed, n, { locked: true }, t('Layer lock'))) };
 export const LAYULK = {
   name: 'LAYULK',
-  label: 'Unlock layer',
+  label: t('Unlock layer'),
   icon: 'layer-unlock',
   async run(ed) {
     // Locked layers are not selectable, so pick by hovering any object on them.
     const locked = [...ed.drawing.layers.values()].filter((l) => l.locked).map((l) => l.name);
-    if (!locked.length) return ed.ui.log('No layers are locked.', 'muted');
-    const name = await ed.getString(`Layer to unlock (${locked.join(', ')})`, { default: locked[0], spaces: true });
-    if (ed.drawing.layers.has(name)) setLayer(ed, name, { locked: false }, 'Layer unlock');
+    if (!locked.length) return ed.ui.log(t('No layers are locked.'), 'muted');
+    const name = await ed.getString(t('Layer to unlock ({layers})', { layers: locked.join(', ') }), { default: locked[0], spaces: true });
+    if (ed.drawing.layers.has(name)) setLayer(ed, name, { locked: false }, t('Layer unlock'));
   },
 };
 export const LAYON = {
   name: 'LAYON',
-  label: 'Turn all layers on',
+  label: t('Turn all layers on'),
   icon: 'layers-on',
   run: (ed) =>
-    ed.commit('All layers on', () => {
+    ed.commit(t('All layers on'), () => {
       for (const l of ed.drawing.layers.values()) if (!l.on) ed.drawing.setTable('layers', l.name, { ...l, on: true });
     }),
 };
 export const LAYTHW = {
   name: 'LAYTHW',
-  label: 'Thaw all layers',
+  label: t('Thaw all layers'),
   icon: 'thaw',
   run: (ed) =>
-    ed.commit('Thaw all layers', () => {
+    ed.commit(t('Thaw all layers'), () => {
       for (const l of ed.drawing.layers.values()) if (l.frozen) ed.drawing.setTable('layers', l.name, { ...l, frozen: false });
     }),
 };
 
 export const LAYISO = {
   name: 'LAYISO',
-  label: 'Isolate layers',
+  label: t('Isolate layers'),
   icon: 'layer-iso',
   async run(ed) {
-    const ids = await ed.getSelection('Select objects on the layers to isolate');
+    const ids = await ed.getSelection(t('Select objects on the layers to isolate'));
     if (!ids.length) return;
     const keep = new Set(ids.map((id) => ed.drawing.get(id).layer));
     const before = {};
-    ed.commit('Isolate layers', () => {
+    ed.commit(t('Isolate layers'), () => {
       for (const l of ed.drawing.layers.values()) {
         before[l.name] = l.on;
         if (!keep.has(l.name) && l.on) ed.drawing.setTable('layers', l.name, { ...l, on: false });
@@ -388,18 +394,18 @@ export const LAYISO = {
     });
     ed.doc.isolated = before;
     ed.clearSelection();
-    ed.ui.log(`Isolated ${keep.size} layer${keep.size === 1 ? '' : 's'}. Use Unisolate to restore.`, 'muted');
+    ed.ui.log(t('Isolated {n} layer{s}. Use Unisolate to restore.', { n: keep.size, s: keep.size === 1 ? '' : 's' }), 'muted');
   },
 };
 
 export const LAYUNISO = {
   name: 'LAYUNISO',
-  label: 'Unisolate layers',
+  label: t('Unisolate layers'),
   icon: 'layer-uniso',
   run(ed) {
     const before = ed.doc.isolated;
-    if (!before) return ed.ui.log('No layers are isolated.', 'muted');
-    ed.commit('Unisolate layers', () => {
+    if (!before) return ed.ui.log(t('No layers are isolated.'), 'muted');
+    ed.commit(t('Unisolate layers'), () => {
       for (const [name, on] of Object.entries(before)) {
         const l = ed.drawing.layers.get(name);
         if (l && l.on !== on) ed.drawing.setTable('layers', name, { ...l, on });
@@ -452,7 +458,7 @@ async function copyToClipboard(ed, ids, base) {
 
 export const COPYCLIP = {
   name: 'COPYCLIP',
-  label: 'Copy to clipboard',
+  label: t('Copy to clipboard'),
   icon: 'copy-clip',
   noRepeat: true,
   async run(ed) {
@@ -460,13 +466,13 @@ export const COPYCLIP = {
     if (!ids.length) return;
     const b = boundsOf(ed, ids);
     await copyToClipboard(ed, ids, b ? { x: b[0], y: b[1] } : { x: 0, y: 0 });
-    ed.ui.log(`${ids.length} object${ids.length === 1 ? '' : 's'} copied`, 'muted');
+    ed.ui.log(t('{n} object{s} copied', { n: ids.length, s: ids.length === 1 ? '' : 's' }), 'muted');
   },
 };
 
 export const CUTCLIP = {
   name: 'CUTCLIP',
-  label: 'Cut',
+  label: t('Cut'),
   icon: 'cut',
   noRepeat: true,
   async run(ed) {
@@ -474,21 +480,21 @@ export const CUTCLIP = {
     if (!ids.length) return;
     const b = boundsOf(ed, ids);
     await copyToClipboard(ed, ids, b ? { x: b[0], y: b[1] } : { x: 0, y: 0 });
-    ed.commit('Cut', () => ids.forEach((id) => ed.drawing.remove(id)));
+    ed.commit(t('Cut'), () => ids.forEach((id) => ed.drawing.remove(id)));
     ed.clearSelection();
   },
 };
 
 export const COPYBASE = {
   name: 'COPYBASE',
-  label: 'Copy with base point',
+  label: t('Copy with base point'),
   icon: 'copy-base',
   noRepeat: true,
   async run(ed) {
     const ids = await ed.getSelection();
     if (!ids.length) return;
     ed.renderer.setSelection(new Set(ids));
-    const base = await ed.getPoint('Base point');
+    const base = await ed.getPoint(t('Base point'));
     if (!base || base.option) return;
     await copyToClipboard(ed, ids, base);
     ed.clearSelection();
@@ -497,7 +503,7 @@ export const COPYBASE = {
 
 export const PASTECLIP = {
   name: 'PASTECLIP',
-  label: 'Paste',
+  label: t('Paste'),
   icon: 'paste',
   noRepeat: true,
   async run(ed) {
@@ -510,15 +516,15 @@ export const PASTECLIP = {
     }
     data = data || ed.app.clipboard;
     if (!data || !data.entities?.length) {
-      ed.ui.log('The clipboard has no drawing objects.', 'error');
+      ed.ui.log(t('The clipboard has no drawing objects.'), 'error');
       return;
     }
     const base = data.base || { x: 0, y: 0 };
     const at = (p) => data.entities.map((e) => transformEntity(e, M.translate(p.x - base.x, p.y - base.y)));
-    const p = await ed.getPoint('Insertion point', { preview: (c) => at(c) });
+    const p = await ed.getPoint(t('Insertion point'), { preview: (c) => at(c) });
     if (!p || p.option) return;
     const d = ed.drawing;
-    ed.commit('Paste', () => {
+    ed.commit(t('Paste'), () => {
       for (const l of data.layers || []) if (!d.layers.has(l.name)) d.setTable('layers', l.name, l);
       for (const b of data.blocks || []) if (!d.blocks.has(b.name)) d.setBlock(b.name, b);
       const ids = [];
@@ -531,7 +537,7 @@ export const PASTECLIP = {
 export const SELECTALL = {
   name: 'SELECTALL',
   aliases: ['AI_SELALL'],
-  label: 'Select all',
+  label: t('Select all'),
   icon: 'select-all',
   noRepeat: true,
   run(ed) {
@@ -541,10 +547,10 @@ export const SELECTALL = {
 
 export const SELECTSIMILAR = {
   name: 'SELECTSIMILAR',
-  label: 'Select similar',
+  label: t('Select similar'),
   icon: 'select-similar',
   async run(ed) {
-    const ids = await ed.getSelection('Select example objects');
+    const ids = await ed.getSelection(t('Select example objects'));
     if (!ids.length) return;
     const keys = new Set(ids.map((id) => {
       const e = ed.drawing.get(id);
@@ -556,5 +562,5 @@ export const SELECTSIMILAR = {
   },
 };
 
-export const UNDO = { name: 'U', aliases: ['UNDO'], label: 'Undo', icon: 'undo', noRepeat: true, immediate: true, needsDoc: false, run: (ed) => ed.app.undo() };
-export const REDO = { name: 'REDO', aliases: ['MREDO'], label: 'Redo', icon: 'redo', noRepeat: true, immediate: true, needsDoc: false, run: (ed) => ed.app.redo() };
+export const UNDO = { name: 'U', aliases: ['UNDO'], label: t('Undo'), icon: 'undo', noRepeat: true, immediate: true, needsDoc: false, run: (ed) => ed.app.undo() };
+export const REDO = { name: 'REDO', aliases: ['MREDO'], label: t('Redo'), icon: 'redo', noRepeat: true, immediate: true, needsDoc: false, run: (ed) => ed.app.redo() };
